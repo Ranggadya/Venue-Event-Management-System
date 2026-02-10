@@ -11,6 +11,7 @@ import { UpdateEventDto } from './dto/update-event.dto';
 import { QueryEventDto } from './dto/query-event.dto';
 import { Prisma, Event } from '@prisma/client';
 import { EventStatus } from '@prisma/client';
+import { PricingHelper } from './pricing.helper';
 
 @Injectable()
 export class EventService {
@@ -21,7 +22,7 @@ export class EventService {
     return uuidRegex.test(uuid);
   }
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async createEvent(createEventDto: CreateEventDto): Promise<Event> {
     this.logger.log(`Creating new event: ${createEventDto.name}`);
@@ -47,6 +48,30 @@ export class EventService {
       );
     }
 
+    const durationHours = PricingHelper.calculateDuration(startDate, endDate);
+
+    let rentalType = createEventDto.rentalType;
+    if (!rentalType) {
+      rentalType = PricingHelper.getOptimalRentalType(
+        venueExists.pricePerHour,
+        venueExists.pricePerDay,
+        durationHours,
+      );
+    }
+
+    const basePrice = PricingHelper.calculateBasePrice(
+      rentalType,
+      venueExists.pricePerHour,
+      venueExists.pricePerDay,
+      durationHours,
+    );
+
+    const finalPrice = PricingHelper.calculateFinalPrice(
+      basePrice,
+      createEventDto.discount || 0,
+      createEventDto.additionalFees || 0,
+    )
+
     try {
       const event = await this.prisma.event.create({
         data: {
@@ -54,8 +79,14 @@ export class EventService {
           description: createEventDto.description || null,
           startDatetime: startDate,
           endDatetime: endDate,
-          status: createEventDto.status || EventStatus.UPCOMING, // ✅ Gunakan Enum
+          status: createEventDto.status || EventStatus.UPCOMING,
           venueId: createEventDto.venueId,
+          rentalType,
+          basePrice: new Prisma.Decimal(basePrice),
+          finalPrice: new Prisma.Decimal(finalPrice),
+          discount: new Prisma.Decimal(createEventDto.discount || 0),
+          additionalFees: new Prisma.Decimal(createEventDto.additionalFees || 0),
+          isPaid: createEventDto.isPaid || false,
         },
         include: {
           venue: {
@@ -64,12 +95,18 @@ export class EventService {
               name: true,
               city: true,
               address: true,
+              pricePerHour: true,
+              pricePerDay: true,
+              currency: true
             },
           },
         },
       });
 
       this.logger.log(`Event created successfully: ${event.id}`);
+      this.logger.log(
+        `Event created: ${event.name} | Duration: ${durationHours}h | Price: ${PricingHelper.formatCurrency(finalPrice)}`,
+      );
       return event;
     } catch (error) {
       this.logger.error(
@@ -270,7 +307,7 @@ export class EventService {
       throw new BadRequestException(`Event with ID "${id}" not found`);
     }
 
-    // Validate datetime if both provided
+    // Validate datetime 
     if (updateEventDto.startDatetime && updateEventDto.endDatetime) {
       const startDate = new Date(updateEventDto.startDatetime);
       const endDate = new Date(updateEventDto.endDatetime);
@@ -561,5 +598,163 @@ export class EventService {
       );
       throw new BadRequestException('Failed to fetch events for venue');
     }
+  }
+
+  // Get financial statistics
+  async getFinancialStatistics() {
+    this.logger.log('Fetching financial statistics');
+
+    try {
+      const [
+        totalRevenue,
+        paidRevenue,
+        unpaidRevenue,
+        revenueByVenue,
+        revenueByMonth,
+        averagePrice,
+      ] = await Promise.all([
+        this.prisma.event.aggregate({
+          _sum: { finalPrice: true },
+        }),
+
+        this.prisma.event.aggregate({
+          where: { isPaid: true },
+          _sum: { finalPrice: true },
+        }),
+
+        this.prisma.event.aggregate({
+          where: { isPaid: false },
+          _sum: { finalPrice: true },
+        }),
+
+        this.prisma.event.groupBy({
+          by: ['venueId'],
+          _sum: { finalPrice: true },
+          _count: true,
+        }),
+
+        // Revenue by month (last 6 months)
+        this.prisma.$queryRaw`
+        SELECT 
+          DATE_FORMAT(start_datetime, '%Y-%m') as month,
+          SUM(final_price) as revenue,
+          COUNT(*) as event_count
+        FROM events
+        WHERE start_datetime >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
+        GROUP BY DATE_FORMAT(start_datetime, '%Y-%m')
+        ORDER BY month DESC
+      `,
+
+        this.prisma.event.aggregate({
+          _avg: { finalPrice: true },
+        }),
+      ]);
+
+      const revenueByVenueEnriched = await Promise.all(
+        revenueByVenue.map(async (item) => {
+          const venue = await this.prisma.venue.findUnique({
+            where: { id: item.venueId },
+            select: { name: true, city: true },
+          });
+
+          return {
+            venueId: item.venueId,
+            venueName: venue?.name || 'Unknown',
+            venueCity: venue?.city || 'Unknown',
+            totalRevenue: Number(item._sum.finalPrice || 0),
+            eventCount: item._count,
+          }
+        })
+      )
+
+      revenueByVenueEnriched.sort((a, b) => b.totalRevenue - a.totalRevenue);
+
+      const statistics = {
+        totalRevenue: Number(totalRevenue._sum.finalPrice || 0),
+        paidRevenue: Number(paidRevenue._sum.finalPrice || 0),
+        unpaidRevenue: Number(unpaidRevenue._sum.finalPrice || 0),
+        averagePrice: Number(averagePrice._avg.finalPrice || 0),
+        revenueByVenue: revenueByVenueEnriched,
+        revenueByMonth,
+        formatted: {
+          totalRevenue: PricingHelper.formatCurrency(
+            Number(totalRevenue._sum.finalPrice || 0),
+          ),
+          paidRevenue: PricingHelper.formatCurrency(
+            Number(paidRevenue._sum.finalPrice || 0),
+          ),
+          unpaidRevenue: PricingHelper.formatCurrency(
+            Number(unpaidRevenue._sum.finalPrice || 0),
+          ),
+          averagePrice: PricingHelper.formatCurrency(
+            Number(averagePrice._avg.finalPrice || 0),
+          ),
+        },
+      };
+
+      this.logger.log(
+        `Financial stats: Total Revenue = ${statistics.formatted.totalRevenue}`,
+      );
+      return statistics;
+    } catch (error) {
+      this.logger.error(
+        `Failed to fetch financial statistics: ${error.message}`,
+        error.stack,
+      );
+      throw new BadRequestException('Failed to fetch financial statistics');
+    }
+  }
+
+  // Get revenue by date range
+
+  async getRevenueByDateRange(startDate: Date, endDate: Date) {
+    const events = await this.prisma.event.findMany({
+      where: {
+        startDatetime: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        startDatetime: true,
+        finalPrice: true,
+        isPaid: true,
+        venue: {
+          select: {
+            name: true,
+            city: true,
+          },
+        },
+      },
+      orderBy: {
+        startDatetime: 'desc',
+      },
+    });
+
+    const totalRevenue = events.reduce(
+      (sum, event) => sum + Number(event.finalPrice || 0),
+      0,
+    );
+
+    const paidRevenue = events
+      .filter((e) => e.isPaid)
+      .reduce((sum, event) => sum + Number(event.finalPrice || 0), 0);
+
+    return {
+      events,
+      summary: {
+        totalEvents: events.length,
+        totalRevenue,
+        paidRevenue,
+        unpaidRevenue: totalRevenue - paidRevenue,
+        formatted: {
+          totalRevenue: PricingHelper.formatCurrency(totalRevenue),
+          paidRevenue: PricingHelper.formatCurrency(paidRevenue),
+          unpaidRevenue: PricingHelper.formatCurrency(totalRevenue - paidRevenue),
+        },
+      },
+    };
   }
 }

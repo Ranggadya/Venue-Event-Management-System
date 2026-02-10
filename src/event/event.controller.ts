@@ -11,6 +11,7 @@ import {
   HttpCode,
   HttpStatus,
   Logger,
+  BadRequestException,
 } from '@nestjs/common';
 import { EventService } from './event.service';
 import { CreateEventDto } from './dto/create-event.dto';
@@ -23,7 +24,7 @@ import { AuthGuard } from '../auth/guards/auth.guard';
 export class EventController {
   private readonly logger = new Logger(EventController.name);
 
-  constructor(private readonly eventService: EventService) {}
+  constructor(private readonly eventService: EventService) { }
 
   /**
    * POST /events - Create new event
@@ -149,6 +150,46 @@ export class EventController {
 
     return {
       ...result,
+      timestamp: new Date().toISOString(),
+    };
+  }
+
+  @Get('financial/statistics')
+  @HttpCode(HttpStatus.OK)
+  async getFinancialStatistics() {
+    this.logger.log('[GET /events/financial/statistics] Fetching financial stats');
+
+    const statistics = await this.eventService.getFinancialStatistics();
+
+    return {
+      message: 'Financial statistics retrieved successfully',
+      data: statistics,
+      timestamp: new Date().toISOString(),
+    };
+  }
+
+  @Get('financial/revenue')
+  @HttpCode(HttpStatus.OK)
+  async getRevenueByDateRange(
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+  ) {
+    this.logger.log(
+      `[GET /events/financial/revenue] Date range: ${startDate} to ${endDate}`,
+    );
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      throw new BadRequestException('Invalid date format');
+    }
+
+    const revenue = await this.eventService.getRevenueByDateRange(start, end);
+
+    return {
+      message: 'Revenue data retrieved successfully',
+      data: revenue,
       timestamp: new Date().toISOString(),
     };
   }

@@ -44,8 +44,8 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async logoutAdmin(@Req() req: Request) {
     return new Promise<{ message: string }>((resolve, reject) => {
-      req.session.destroy((err) => {
-        if (err) {
+      req.session.destroy((error) => {
+        if (error) {
           return reject(
             new UnauthorizedException('Failed to logout. Please try again.'),
           );

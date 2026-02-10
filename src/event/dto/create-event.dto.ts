@@ -6,10 +6,14 @@ import {
   MaxLength,
   IsDateString,
   IsUUID,
-  IsEnum, // ✅ Import IsEnum
+  IsEnum,
+  IsNumber,
+  Min,
+  Max,
+  IsBoolean,
 } from 'class-validator';
-import { Transform } from 'class-transformer';
-import { EventStatus } from '@prisma/client'; // ✅ Import Enum
+import { Transform, Type } from 'class-transformer';
+import { EventStatus, RentalType } from '@prisma/client';
 
 export class CreateEventDto {
   @IsString({ message: 'Event name must be a string' })
@@ -41,10 +45,31 @@ export class CreateEventDto {
   @IsNotEmpty({ message: 'Venue ID is required' })
   venueId: string;
 
-  // ✅ UPDATED: Gunakan IsEnum dengan Prisma Enum
   @IsOptional()
   @IsEnum(EventStatus, {
     message: 'Status must be one of: UPCOMING, ONGOING, COMPLETED, CANCELLED',
   })
-  status?: EventStatus; // ✅ Type dari Prisma
+  status?: EventStatus;
+
+  @IsOptional()
+  @IsEnum(RentalType)
+  rentalType?: RentalType;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  @Max(100)
+  discount?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  additionalFees?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  isPaid?: boolean;
+
 }

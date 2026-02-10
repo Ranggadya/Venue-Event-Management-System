@@ -19,12 +19,11 @@ export class QueryEventDto {
   @IsUUID('4', { message: 'Venue ID must be a valid UUID' })
   venueId?: string;
 
-  // ✅ UPDATED: Gunakan IsEnum
   @IsOptional()
   @IsEnum(EventStatus, {
     message: 'Status must be one of: UPCOMING, ONGOING, COMPLETED, CANCELLED',
   })
-  status?: EventStatus; // ✅ Type dari Prisma
+  status?: EventStatus;
 
   @IsOptional()
   @IsString()

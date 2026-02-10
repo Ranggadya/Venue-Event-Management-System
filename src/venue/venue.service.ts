@@ -54,7 +54,7 @@ export class VenueService {
             ? new Prisma.Decimal(createVenueDto.pricePerDay)
             : null,
           currency: createVenueDto.currency || 'IDR',
-          status: createVenueDto.status || VenueStatus.AVAILABLE, // ✅ Gunakan Enum
+          status: createVenueDto.status || VenueStatus.AVAILABLE,
         },
       });
 
@@ -262,7 +262,6 @@ export class VenueService {
 
   /**
    * Delete venue by ID
-   * Business Rule (SRS-009): Venue cannot be deleted if it has related events
    */
   async deleteVenue(id: string): Promise<{ message: string }> {
     this.logger.log(`Attempting to delete venue: ${id}`);
@@ -285,7 +284,6 @@ export class VenueService {
       throw new NotFoundException(`Venue with ID "${id}" not found`);
     }
 
-    // ✅ BUSINESS RULE (SRS-009)
     if (venue._count.events > 0) {
       this.logger.warn(
         `Cannot delete venue "${venue.name}" - has ${venue._count.events} events`,

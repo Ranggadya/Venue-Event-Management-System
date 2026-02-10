@@ -66,16 +66,30 @@ model Event {
   createdAt       DateTime    @default(now()) @map("created_at")
   updatedAt       DateTime    @updatedAt @map("updated_at")
 
+  rentalType      RentalType  @default(HOURLY) @map("rental_type")
+  basePrice       Decimal?    @map("base_price") @db.Decimal(10, 2) // Auto-calculated
+  discount        Decimal?    @default(0) @db.Decimal(5, 2) // Percentage (0-100)
+  additionalFees  Decimal?    @default(0) @map("additional_fees") @db.Decimal(10, 2)
+  finalPrice      Decimal?    @map("final_price") @db.Decimal(10, 2) // Total after discount + fees
+  isPaid          Boolean     @default(false) @map("is_paid")
+  paymentDate     DateTime?   @map("payment_date")
+
   venue Venue @relation(fields: [venueId], references: [id], onDelete: Restrict)
 
   @@map("events")
   @@index([venueId])
   @@index([startDatetime])
+  @@index([isPaid])
 }
 
 // ==========================================
 // ENUMS
 // ==========================================
+enum RentalType {
+  HOURLY
+  DAILY
+}
+
 enum VenueStatus {
   AVAILABLE
   BOOKED

@@ -78,10 +78,9 @@ export class CreateVenueDto {
   @Transform(({ value }) => value?.toUpperCase() || 'IDR')
   currency?: string;
 
-  // ✅ UPDATED: Gunakan IsEnum dengan Prisma Enum
   @IsOptional()
   @IsEnum(VenueStatus, {
     message: 'Status must be one of: AVAILABLE, BOOKED, MAINTENANCE, INACTIVE',
   })
-  status?: VenueStatus; // ✅ Type dari Prisma
+  status?: VenueStatus;
 }

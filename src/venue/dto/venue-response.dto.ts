@@ -1,8 +1,5 @@
 import { Event } from '@prisma/client';
 
-/**
- * Response DTO untuk single venue
- */
 export class VenueResponseDto {
   id: string;
   name: string;
@@ -10,7 +7,7 @@ export class VenueResponseDto {
   address: string;
   city: string;
   capacity: number;
-  pricePerHour: string | null; // Decimal as string untuk precision
+  pricePerHour: string | null;
   pricePerDay: string | null;
   currency: string;
   status: string;
@@ -20,9 +17,6 @@ export class VenueResponseDto {
   events?: Event[];
 }
 
-/**
- * Response DTO untuk list venues dengan pagination
- */
 export class VenueListResponseDto {
   data: VenueResponseDto[];
   meta: {

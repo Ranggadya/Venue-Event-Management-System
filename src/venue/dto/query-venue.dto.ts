@@ -1,6 +1,6 @@
 import { IsOptional, IsString, IsEnum, IsInt, Min, Max } from 'class-validator';
 import { Type } from 'class-transformer';
-import { VenueStatus } from '@prisma/client'; // ✅ Import
+import { VenueStatus } from '@prisma/client';
 
 export class QueryVenueDto {
   @IsOptional()
@@ -11,12 +11,11 @@ export class QueryVenueDto {
   @IsString()
   city?: string;
 
-  // ✅ UPDATED: Gunakan IsEnum
   @IsOptional()
   @IsEnum(VenueStatus, {
     message: 'Status must be one of: AVAILABLE, BOOKED, MAINTENANCE, INACTIVE',
   })
-  status?: VenueStatus; // ✅ Type dari Prisma
+  status?: VenueStatus;
 
   @IsOptional()
   @Type(() => Number)
