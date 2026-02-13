@@ -1,0 +1,329 @@
+<!-- Breadcrumb -->
+<nav class="breadcrumb mb-6">
+    <a href="/dashboard" class="breadcrumb-item">Dashboard</a>
+    <span class="breadcrumb-separator">/</span>
+    <a href="/events" class="breadcrumb-item">Events</a>
+    <span class="breadcrumb-separator">/</span>
+    <span class="text-slate-900 font-medium">Statistics</span>
+</nav>
+
+<!-- Page Header -->
+<div class="mb-6">
+    <h1 class="text-2xl font-bold text-slate-900">Event Statistics</h1>
+    <p class="text-slate-600 mt-1">Overview of all event metrics and analytics</p>
+</div>
+
+<!-- Error State -->
+<% if (typeof error !=='undefined' && error) { %>
+    <div class="alert-error">
+        <div class="flex items-start">
+            <svg class="h-5 w-5 text-red-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+                <h3 class="text-sm font-medium text-red-800">Error</h3>
+                <p class="text-sm text-red-700 mt-1">
+                    <%= error %>
+                </p>
+            </div>
+        </div>
+    </div>
+    <% } else if (statistics) { %>
+
+        <!-- Overview Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+
+            <!-- Total Events -->
+            <div class="card-hover">
+                <div class="card-body">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-slate-600 mb-1">Total Events</p>
+                            <p class="text-3xl font-bold text-slate-900">
+                                <%= statistics.total %>
+                            </p>
+                        </div>
+                        <div class="stat-icon bg-accent-100">
+                            <svg class="h-6 w-6 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upcoming Events -->
+            <div class="card-hover">
+                <div class="card-body">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-slate-600 mb-1">Upcoming</p>
+                            <p class="text-3xl font-bold text-slate-900">
+                                <%= statistics.upcoming || 0 %>
+                            </p>
+                            <p class="text-xs text-sky-600 mt-1">
+                                <%= ((statistics.upcoming / statistics.total) * 100).toFixed(1) %>% of total
+                            </p>
+                        </div>
+                        <div class="stat-icon bg-sky-100">
+                            <svg class="h-6 w-6 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ongoing Events -->
+            <div class="card-hover">
+                <div class="card-body">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-slate-600 mb-1">Ongoing</p>
+                            <p class="text-3xl font-bold text-slate-900">
+                                <%= statistics.ongoing || 0 %>
+                            </p>
+                            <p class="text-xs text-emerald-600 mt-1 flex items-center">
+                                <svg class="h-3 w-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd"
+                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                                Active now
+                            </p>
+                        </div>
+                        <div class="stat-icon bg-emerald-100">
+                            <svg class="h-6 w-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Completed Events -->
+            <div class="card-hover">
+                <div class="card-body">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-slate-600 mb-1">Completed</p>
+                            <p class="text-3xl font-bold text-slate-900">
+                                <%= statistics.completed || 0 %>
+                            </p>
+                            <p class="text-xs text-slate-500 mt-1">All time</p>
+                        </div>
+                        <div class="stat-icon bg-slate-100">
+                            <svg class="h-6 w-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Status Breakdown -->
+        <% if (statistics.byStatus && statistics.byStatus.length> 0) { %>
+            <div class="card mb-8">
+                <div class="card-header">
+                    <h3 class="text-lg font-semibold text-slate-900">Events by Status</h3>
+                    <p class="text-sm text-slate-600 mt-1">Distribution of events across different statuses</p>
+                </div>
+                <div class="card-body">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <% statistics.byStatus.forEach(stat=> { %>
+                            <div class="text-center p-6 bg-slate-50 rounded-lg border-2 <%= 
+                stat.status === 'UPCOMING' ? 'border-sky-200' :
+                stat.status === 'ONGOING' ? 'border-emerald-200' :
+                stat.status === 'COMPLETED' ? 'border-slate-200' :
+                'border-red-200'
+            %>">
+                                <div class="inline-flex items-center justify-center h-12 w-12 rounded-full mb-3 <%= 
+                    stat.status === 'UPCOMING' ? 'bg-sky-100' :
+                    stat.status === 'ONGOING' ? 'bg-emerald-100' :
+                    stat.status === 'COMPLETED' ? 'bg-slate-100' :
+                    'bg-red-100'
+                %>">
+                                    <% if (stat.status==='UPCOMING' ) { %>
+                                        <svg class="h-6 w-6 text-sky-600" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <% } else if (stat.status==='ONGOING' ) { %>
+                                            <svg class="h-6 w-6 text-emerald-600" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                            </svg>
+                                            <% } else if (stat.status==='COMPLETED' ) { %>
+                                                <svg class="h-6 w-6 text-slate-600" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                <% } else { %>
+                                                    <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                    </svg>
+                                                    <% } %>
+                                </div>
+                                <p class="text-3xl font-bold <%= 
+                    stat.status === 'UPCOMING' ? 'text-sky-600' :
+                    stat.status === 'ONGOING' ? 'text-emerald-600' :
+                    stat.status === 'COMPLETED' ? 'text-slate-600' :
+                    'text-red-600'
+                %>">
+                                    <%= stat.count %>
+                                </p>
+                                <p class="text-sm text-slate-600 mt-2 font-medium uppercase">
+                                    <%= stat.status %>
+                                </p>
+                                <p class="text-xs text-slate-500 mt-1">
+                                    <%= ((stat.count / statistics.total) * 100).toFixed(1) %>%
+                                </p>
+                            </div>
+                            <% }); %>
+                    </div>
+                </div>
+            </div>
+            <% } %>
+
+                <!-- Top Venues -->
+                <% if (statistics.byVenue && statistics.byVenue.length> 0) { %>
+                    <div class="card mb-8">
+                        <div class="card-header">
+                            <h3 class="text-lg font-semibold text-slate-900">Most Booked Venues</h3>
+                            <p class="text-sm text-slate-600 mt-1">Venues with the highest number of events</p>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="table">
+                                <thead class="table-header">
+                                    <tr>
+                                        <th class="table-header-cell">Rank</th>
+                                        <th class="table-header-cell">Venue Name</th>
+                                        <th class="table-header-cell">City</th>
+                                        <th class="table-header-cell">Events Count</th>
+                                        <th class="table-header-cell">Percentage</th>
+                                        <th class="table-header-cell text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="table-body">
+                                    <% statistics.byVenue.slice(0, 10).forEach((item, index)=> { %>
+                                        <tr class="table-row-hover">
+                                            <td class="table-cell">
+                                                <div class="inline-flex items-center justify-center h-8 w-8 rounded-full <%= 
+                            index === 0 ? 'bg-amber-100 text-amber-600' :
+                            index === 1 ? 'bg-slate-200 text-slate-700' :
+                            index === 2 ? 'bg-orange-100 text-orange-600' :
+                            'bg-slate-100 text-slate-600'
+                        %> font-bold text-sm">
+                                                    <%= index + 1 %>
+                                                </div>
+                                            </td>
+                                            <td class="table-cell">
+                                                <a href="/venues/<%= item.venue.id %>"
+                                                    class="font-medium text-slate-900 hover:text-primary-600">
+                                                    <%= item.venue.name %>
+                                                </a>
+                                            </td>
+                                            <td class="table-cell">
+                                                <span class="text-slate-700">
+                                                    <%= item.venue.city %>
+                                                </span>
+                                            </td>
+                                            <td class="table-cell">
+                                                <span class="text-slate-900 font-medium">
+                                                    <%= item.count %>
+                                                </span> events
+                                            </td>
+                                            <td class="table-cell">
+                                                <div class="flex items-center">
+                                                    <div class="flex-1 max-w-xs">
+                                                        <div class="h-2 bg-slate-200 rounded-full overflow-hidden">
+                                                            <div class="h-full bg-primary-500 rounded-full"
+                                                                style="width: <%= (item.count / statistics.total * 100) %>%">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <span class="ml-3 text-sm font-medium text-slate-700">
+                                                        <%= ((item.count / statistics.total) * 100).toFixed(1) %>%
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td class="table-cell text-right">
+                                                <a href="/events?venueId=<%= item.venue.id %>"
+                                                    class="btn btn-sm btn-outline">
+                                                    View Events
+                                                    <svg class="h-4 w-4 ml-1" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2" d="M9 5l7 7-7 7" />
+                                                    </svg>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        <% }); %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <% } %>
+
+                        <!-- Quick Actions -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                            <a href="/events" class="card-hover card-body group">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <h3 class="text-lg font-semibold text-slate-900 mb-1">View All Events</h3>
+                                        <p class="text-sm text-slate-600">Browse complete event list</p>
+                                    </div>
+                                    <svg class="h-8 w-8 text-slate-400 group-hover:text-primary-600 transition-colors"
+                                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </div>
+                            </a>
+
+                            <a href="/events/create" class="card-hover card-body group">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <h3 class="text-lg font-semibold text-slate-900 mb-1">Add New Event</h3>
+                                        <p class="text-sm text-slate-600">Create a new event booking</p>
+                                    </div>
+                                    <svg class="h-8 w-8 text-slate-400 group-hover:text-primary-600 transition-colors"
+                                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 4v16m8-8H4" />
+                                    </svg>
+                                </div>
+                            </a>
+
+                            <a href="/events/financial/overview" class="card-hover card-body group">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <h3 class="text-lg font-semibold text-slate-900 mb-1">Financial Stats</h3>
+                                        <p class="text-sm text-slate-600">View revenue reports</p>
+                                    </div>
+                                    <svg class="h-8 w-8 text-slate-400 group-hover:text-primary-600 transition-colors"
+                                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                            </a>
+
+                        </div>
+
+                        <% } %>

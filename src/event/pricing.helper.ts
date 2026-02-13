@@ -2,11 +2,11 @@ import { Decimal } from '@prisma/client/runtime/library';
 import { RentalType } from '@prisma/client';
 
 export class PricingHelper {
-// Calculate rental duration in hours
+  // Calculate rental duration in hours
   static calculateDuration(startDate: Date, endDate: Date): number {
     const diffMs = endDate.getTime() - startDate.getTime();
     const hours = diffMs / (1000 * 60 * 60);
-    return Math.ceil(hours); // Round up
+    return Math.ceil(hours);
   }
 
   // Calculate base price based on rental type
@@ -44,7 +44,7 @@ export class PricingHelper {
     return Math.round(finalPrice);
   }
 
-  // Get optimal rental type (cheaper option)
+  // Get optimal rental type
 
   static getOptimalRentalType(
     pricePerHour: Decimal | null,

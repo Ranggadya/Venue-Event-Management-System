@@ -1,0 +1,557 @@
+{
+  "info": {
+    "name": "EventManager API",
+    "description": "Complete API testing for EventManager Admin Panel",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3001",
+      "type": "string"
+    },
+    {
+      "key": "venueId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "eventId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test response",
+                  "pm.test('Status code is 200', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has success flag', function() {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('Response contains admin data', function() {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('id');",
+                  "    pm.expect(jsonData.data).to.have.property('email');",
+                  "});",
+                  "",
+                  "// Session cookie should be automatically stored by Postman"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@eventmanager.com\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Get Current Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains admin profile', function() {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data).to.have.property('email');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "me"]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "logout"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Venues API",
+      "item": [
+        {
+          "name": "Create Venue",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Save venue ID for later use",
+                  "if (pm.response.code === 201) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('venueId', jsonData.data.id);",
+                  "    console.log('Venue ID saved: ' + jsonData.data.id);",
+                  "}",
+                  "",
+                  "pm.test('Status code is 201', function() {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Venue created successfully', function() {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data).to.have.property('id');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Grand Ballroom Jakarta\",\n  \"description\": \"Luxurious ballroom for large events and weddings\",\n  \"address\": \"Jl. Sudirman No. 123\",\n  \"city\": \"Jakarta\",\n  \"capacity\": 500,\n  \"pricePerHour\": 5000000,\n  \"pricePerDay\": 100000000,\n  \"currency\": \"IDR\",\n  \"status\": \"AVAILABLE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/venues",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "venues"]
+            }
+          }
+        },
+        {
+          "name": "Get All Venues",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains venue list', function() {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data).to.be.an('array');",
+                  "    pm.expect(jsonData.meta).to.have.property('total');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/venues?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "venues"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "search",
+                  "value": "Jakarta",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "AVAILABLE",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Venue by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains venue details', function() {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data).to.have.property('id');",
+                  "    pm.expect(jsonData.data).to.have.property('events');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/venues/{{venueId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "venues", "{{venueId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Venue",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Venue updated successfully', function() {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data.capacity).to.eql(600);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"capacity\": 600,\n  \"status\": \"BOOKED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/venues/{{venueId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "venues", "{{venueId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Venue Statistics",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains statistics', function() {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data).to.have.property('total');",
+                  "    pm.expect(jsonData.data).to.have.property('byStatus');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/venues/statistics",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "venues", "statistics"]
+            }
+          }
+        },
+        {
+          "name": "Delete Venue",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Venue deleted successfully', function() {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/venues/{{venueId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "venues", "{{venueId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Events API",
+      "item": [
+        {
+          "name": "Create Event",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Save event ID for later use",
+                  "if (pm.response.code === 201) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('eventId', jsonData.data.id);",
+                  "    console.log('Event ID saved: ' + jsonData.data.id);",
+                  "}",
+                  "",
+                  "pm.test('Status code is 201', function() {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Event created with pricing', function() {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data).to.have.property('basePrice');",
+                  "    pm.expect(jsonData.data).to.have.property('finalPrice');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Wedding Ceremony - Budi & Ani\",\n  \"description\": \"Beautiful wedding ceremony and reception\",\n  \"startDatetime\": \"2025-03-15T14:00:00Z\",\n  \"endDatetime\": \"2025-03-15T22:00:00Z\",\n  \"venueId\": \"{{venueId}}\",\n  \"status\": \"UPCOMING\",\n  \"discount\": 10,\n  \"additionalFees\": 5000000,\n  \"isPaid\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/events",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events"]
+            }
+          }
+        },
+        {
+          "name": "Get All Events",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains event list', function() {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/events?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "venueId",
+                  "value": "{{venueId}}",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "UPCOMING",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Event by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/events/{{eventId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events", "{{eventId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Event",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ONGOING\",\n  \"isPaid\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/events/{{eventId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events", "{{eventId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Events by Venue",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/events/venue/{{venueId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events", "venue", "{{venueId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Event Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/events/statistics",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events", "statistics"]
+            }
+          }
+        },
+        {
+          "name": "Get Financial Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/events/financial/statistics",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events", "financial", "statistics"]
+            }
+          }
+        },
+        {
+          "name": "Get Revenue by Date Range",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/events/financial/revenue?startDate=2025-01-01&endDate=2025-12-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events", "financial", "revenue"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2025-01-01"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2025-12-31"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Event",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/events/{{eventId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events", "{{eventId}}"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

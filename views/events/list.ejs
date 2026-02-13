@@ -1,0 +1,521 @@
+<!-- Page Header -->
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+    <div>
+        <h1 class="text-2xl font-bold text-slate-900">Event Management</h1>
+        <p class="text-slate-600 mt-1">Manage all events and bookings</p>
+    </div>
+    <div class="flex items-center gap-3">
+        <a href="/events/statistics/overview" class="btn btn-outline btn-sm">
+            <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            Statistics
+        </a>
+        <a href="/events/create" class="btn btn-primary">
+            <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Add New Event
+        </a>
+    </div>
+</div>
+
+<!-- Filters & Search -->
+<div class="card mb-6">
+    <div class="card-body">
+        <form method="GET" action="/events" class="space-y-4" x-data="{ 
+            search: '<%= query.search || '' %>',
+            venueId: '<%= query.venueId || '' %>',
+            status: '<%= query.status || '' %>',
+            sortBy: '<%= query.sortBy || 'startDatetime' %>',
+            sortOrder: '<%= query.sortOrder || 'asc' %>'
+        }">
+
+            <!-- First Row: Search & Quick Filters -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+                <!-- Search Input -->
+                <div class="md:col-span-2">
+                    <label for="search" class="form-label">Search</label>
+                    <div class="relative">
+                        <input type="text" id="search" name="search" x-model="search"
+                            placeholder="Search by event name or venue..." class="form-input pl-10">
+                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Venue Filter -->
+                <div>
+                    <label for="venueId" class="form-label">Venue</label>
+                    <select id="venueId" name="venueId" x-model="venueId" class="form-select">
+                        <option value="">All Venues</option>
+                        <!-- Will be populated by controller -->
+                    </select>
+                </div>
+
+                <!-- Status Filter -->
+                <div>
+                    <label for="status" class="form-label">Status</label>
+                    <select id="status" name="status" x-model="status" class="form-select">
+                        <option value="">All Status</option>
+                        <option value="UPCOMING">Upcoming</option>
+                        <option value="ONGOING">Ongoing</option>
+                        <option value="COMPLETED">Completed</option>
+                        <option value="CANCELLED">Cancelled</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <!-- Second Row: Date Range & Sort -->
+            <div class="flex flex-wrap items-end gap-4">
+
+                <!-- Start Date -->
+                <div class="flex-1 min-w-[200px]">
+                    <label for="startDate" class="form-label">From Date</label>
+                    <input type="date" id="startDate" name="startDate" value="<%= query.startDate || '' %>"
+                        class="form-input">
+                </div>
+
+                <!-- End Date -->
+                <div class="flex-1 min-w-[200px]">
+                    <label for="endDate" class="form-label">To Date</label>
+                    <input type="date" id="endDate" name="endDate" value="<%= query.endDate || '' %>"
+                        class="form-input">
+                </div>
+
+                <!-- Sort By -->
+                <div class="flex-1 min-w-[200px]">
+                    <label for="sortBy" class="form-label">Sort By</label>
+                    <select id="sortBy" name="sortBy" x-model="sortBy" class="form-select">
+                        <option value="startDatetime">Start Date</option>
+                        <option value="name">Event Name</option>
+                        <option value="status">Status</option>
+                        <option value="createdAt">Created Date</option>
+                    </select>
+                </div>
+
+                <!-- Sort Order -->
+                <div class="flex-1 min-w-[200px]">
+                    <label for="sortOrder" class="form-label">Order</label>
+                    <select id="sortOrder" name="sortOrder" x-model="sortOrder" class="form-select">
+                        <option value="asc">Ascending</option>
+                        <option value="desc">Descending</option>
+                    </select>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                        </svg>
+                        Apply
+                    </button>
+                    <a href="/events" class="btn btn-secondary">
+                        <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        Reset
+                    </a>
+                </div>
+
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<!-- Results Summary -->
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+    <div class="text-sm text-slate-600">
+        Showing <span class="font-medium text-slate-900">
+            <%= (meta.page - 1) * meta.limit + 1 %>
+        </span>
+        to <span class="font-medium text-slate-900">
+            <%= Math.min(meta.page * meta.limit, meta.total) %>
+        </span>
+        of <span class="font-medium text-slate-900">
+            <%= meta.total %>
+        </span> events
+    </div>
+
+    <!-- Per Page Selector -->
+    <div class="flex items-center space-x-2">
+        <span class="text-sm text-slate-600">Per page:</span>
+        <select onchange="window.location.href='?limit=' + this.value + '&page=1'"
+            class="form-select text-sm py-1 w-20">
+            <option value="10" <%=meta.limit===10 ? 'selected' : '' %>>10</option>
+            <option value="25" <%=meta.limit===25 ? 'selected' : '' %>>25</option>
+            <option value="50" <%=meta.limit===50 ? 'selected' : '' %>>50</option>
+            <option value="100" <%=meta.limit===100 ? 'selected' : '' %>>100</option>
+        </select>
+    </div>
+</div>
+
+<!-- Events Table - FULL WIDTH -->
+<div class="card">
+    <div class="overflow-x-auto">
+        <table class="table">
+            <thead class="table-header">
+                <tr>
+                    <th class="table-header-cell w-8">
+                        <input type="checkbox" class="form-checkbox" title="Select all">
+                    </th>
+                    <th class="table-header-cell">Event Name</th>
+                    <th class="table-header-cell">Venue</th>
+                    <th class="table-header-cell">Date & Time</th>
+                    <th class="table-header-cell">Duration</th>
+                    <th class="table-header-cell">Attendees</th> <!-- 🆕 KOLOM BARU -->
+                    <th class="table-header-cell">Price</th>
+                    <th class="table-header-cell">Status</th>
+                    <th class="table-header-cell text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="table-body">
+                <% if (events && events.length> 0) { %>
+                    <% events.forEach(event=> { %>
+                        <tr class="table-row-hover">
+                            <!-- Checkbox -->
+                            <td class="table-cell">
+                                <input type="checkbox" class="form-checkbox" value="<%= event.id %>">
+                            </td>
+
+                            <!-- Event Name -->
+                            <td class="table-cell">
+                                <div class="flex items-center">
+                                    <div
+                                        class="h-10 w-10 flex-shrink-0 bg-accent-100 rounded-lg flex items-center justify-center mr-3">
+                                        <svg class="h-5 w-5 text-accent-600" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <a href="/events/<%= event.id %>"
+                                            class="font-medium text-slate-900 hover:text-primary-600 transition-colors">
+                                            <%= event.name %>
+                                        </a>
+                                        <% if (event.description) { %>
+                                            <p class="text-xs text-slate-500 mt-0.5 truncate max-w-xs">
+                                                <%= event.description.substring(0, 50) %>
+                                                    <%= event.description.length> 50 ? '...' : '' %>
+                                            </p>
+                                            <% } %>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <!-- Venue -->
+                            <td class="table-cell">
+                                <% if (event.venue) { %>
+                                    <a href="/venues/<%= event.venue.id %>"
+                                        class="text-sm text-primary-600 hover:text-primary-700 font-medium">
+                                        <%= event.venue.name %>
+                                    </a>
+                                    <div class="text-xs text-slate-500">
+                                        <%= event.venue.city %>
+                                    </div>
+                                    <% } else { %>
+                                        <span class="text-sm text-slate-500">-</span>
+                                        <% } %>
+                            </td>
+
+                            <!-- Date & Time -->
+                            <td class="table-cell">
+                                <div class="text-sm text-slate-900">
+                                    <%= new Date(event.startDatetime).toLocaleDateString('id-ID', { day: 'numeric' ,
+                                        month: 'short' , year: 'numeric' }) %>
+                                </div>
+                                <div class="text-xs text-slate-500">
+                                    <%= new Date(event.startDatetime).toLocaleTimeString('id-ID', { hour: '2-digit' ,
+                                        minute: '2-digit' }) %> -
+                                        <%= new Date(event.endDatetime).toLocaleTimeString('id-ID', { hour: '2-digit' ,
+                                            minute: '2-digit' }) %>
+                                </div>
+                            </td>
+
+                            <!-- Duration -->
+                            <td class="table-cell">
+                                <% const durationMs=new Date(event.endDatetime) - new Date(event.startDatetime); const
+                                    hours=Math.floor(durationMs / (1000 * 60 * 60)); const
+                                    minutes=Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60)); %>
+                                    <div class="text-sm text-slate-900">
+                                        <%= hours %>h <% if (minutes> 0) { %><%= minutes %>m<% } %>
+                                    </div>
+                                    <% if (event.rentalType) { %>
+                                        <span class="badge badge-info text-xs">
+                                            <%= event.rentalType %>
+                                        </span>
+                                        <% } %>
+                            </td>
+
+                            <!-- 🆕 Attendees -->
+                            <td class="table-cell">
+                                <% if (event.attendeeCount) { %>
+                                    <div class="flex items-center text-sm text-slate-900">
+                                        <svg class="h-4 w-4 mr-1 text-slate-400" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                        </svg>
+                                        <span class="font-medium">
+                                            <%= event.attendeeCount %>
+                                        </span>
+                                    </div>
+                                    <% if (event.venue && event.venue.capacity) { %>
+                                        <% const utilizationPercent=(event.attendeeCount / event.venue.capacity *
+                                            100).toFixed(0); const isOverCapacity=event.attendeeCount>
+                                            event.venue.capacity;
+                                            %>
+                                            <div
+                                                class="text-xs mt-1 <%= isOverCapacity ? 'text-red-600' : 'text-slate-500' %>">
+                                                <%= utilizationPercent %>% of <%= event.venue.capacity %>
+                                            </div>
+                                            <% } %>
+                                                <% } else { %>
+                                                    <span class="text-sm text-slate-400">-</span>
+                                                    <% } %>
+                            </td>
+
+                            <!-- Price -->
+                            <td class="table-cell">
+                                <% if (event.finalPrice) { %>
+                                    <div class="text-sm font-medium text-slate-900">
+                                        <%= new Intl.NumberFormat('id-ID', { style: 'currency' , currency: 'IDR' ,
+                                            minimumFractionDigits: 0 }).format(event.finalPrice) %>
+                                    </div>
+                                    <% if (event.isPaid) { %>
+                                        <span class="badge badge-success text-xs">PAID</span>
+                                        <% } else { %>
+                                            <span class="badge badge-warning text-xs">UNPAID</span>
+                                            <% } %>
+                                                <% } else { %>
+                                                    <span class="text-sm text-slate-500">-</span>
+                                                    <% } %>
+                            </td>
+
+                            <!-- Status -->
+                            <td class="table-cell">
+                                <span class="badge <%= 
+                                event.status === 'UPCOMING' ? 'badge-info' :
+                                event.status === 'ONGOING' ? 'badge-success' :
+                                event.status === 'COMPLETED' ? 'bg-slate-100 text-slate-800' :
+                                'badge-danger'
+                            %>">
+                                    <%= event.status %>
+                                </span>
+                            </td>
+
+                            <!-- Actions -->
+                            <td class="table-cell">
+                                <div class="flex items-center justify-end space-x-2">
+                                    <!-- View -->
+                                    <a href="/events/<%= event.id %>"
+                                        class="p-1.5 text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded transition-colors"
+                                        title="View Details">
+                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                    </a>
+
+                                    <!-- Edit -->
+                                    <a href="/events/<%= event.id %>/edit"
+                                        class="p-1.5 text-slate-400 hover:text-sky-600 hover:bg-sky-50 rounded transition-colors"
+                                        title="Edit Event">
+                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        </svg>
+                                    </a>
+
+                                    <!-- Toggle Payment -->
+                                    <% if (!event.isPaid) { %>
+                                        <form method="POST" action="/events/<%= event.id %>/toggle-payment"
+                                            class="inline-block">
+                                            <button type="submit"
+                                                class="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors"
+                                                title="Mark as Paid">
+                                                <svg class="h-5 w-5" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                            </button>
+                                        </form>
+                                        <% } %>
+
+                                            <!-- Delete -->
+                                            <form method="POST" action="/events/<%= event.id %>/delete"
+                                                class="inline-block"
+                                                onsubmit="return confirm('Are you sure you want to delete <%= event.name %>?');">
+                                                <button type="submit"
+                                                    class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                                                    title="Delete Event">
+                                                    <svg class="h-5 w-5" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                    </svg>
+                                                </button>
+                                            </form>
+                                </div>
+                            </td>
+                        </tr>
+                        <% }); %>
+                            <% } else { %>
+                                <!-- Empty State -->
+                                <tr>
+                                    <td colspan="9" class="table-cell text-center py-16">
+                                        <svg class="mx-auto h-16 w-16 text-slate-400" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                        <h3 class="mt-4 text-lg font-medium text-slate-900">No events found</h3>
+                                        <p class="mt-2 text-sm text-slate-500">
+                                            <% if (query.search || query.venueId || query.status) { %>
+                                                Try adjusting your search or filter criteria
+                                                <% } else { %>
+                                                    Get started by creating your first event
+                                                    <% } %>
+                                        </p>
+                                        <div class="mt-6 space-x-3">
+                                            <% if (query.search || query.venueId || query.status) { %>
+                                                <a href="/events" class="btn btn-secondary">Clear Filters</a>
+                                                <% } %>
+                                                    <a href="/events/create" class="btn btn-primary">
+                                                        <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor"
+                                                            viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2" d="M12 4v16m8-8H4" />
+                                                        </svg>
+                                                        Create New Event
+                                                    </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <% } %>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <% if (meta.totalPages> 1) { %>
+        <div class="card-footer">
+            <div class="flex items-center justify-between">
+
+                <!-- Page Info -->
+                <div class="text-sm text-slate-600">
+                    Page <span class="font-medium">
+                        <%= meta.page %>
+                    </span> of <span class="font-medium">
+                        <%= meta.totalPages %>
+                    </span>
+                </div>
+
+                <!-- Pagination Controls -->
+                <div class="pagination">
+
+                    <!-- Previous Button -->
+                    <% if (meta.hasPreviousPage) { %>
+                        <a href="?page=<%= meta.page - 1 %>&limit=<%= meta.limit %>"
+                            class="pagination-btn pagination-btn-inactive">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 19l-7-7 7-7" />
+                            </svg>
+                        </a>
+                        <% } else { %>
+                            <span class="pagination-btn opacity-50 cursor-not-allowed">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 19l-7-7 7-7" />
+                                </svg>
+                            </span>
+                            <% } %>
+
+                                <!-- Page Numbers -->
+                                <% const startPage=Math.max(1, meta.page - 2); const endPage=Math.min(meta.totalPages,
+                                    meta.page + 2); if (startPage> 1) { %>
+                                    <a href="?page=1&limit=<%= meta.limit %>"
+                                        class="pagination-btn pagination-btn-inactive">1</a>
+                                    <% if (startPage> 2) { %>
+                                        <span class="pagination-btn">...</span>
+                                        <% } %>
+                                            <% } %>
+
+                                                <% for (let i=startPage; i <=endPage; i++) { %>
+                                                    <% if (i===meta.page) { %>
+                                                        <span class="pagination-btn pagination-btn-active">
+                                                            <%= i %>
+                                                        </span>
+                                                        <% } else { %>
+                                                            <a href="?page=<%= i %>&limit=<%= meta.limit %>"
+                                                                class="pagination-btn pagination-btn-inactive">
+                                                                <%= i %>
+                                                            </a>
+                                                            <% } %>
+                                                                <% } %>
+
+                                                                    <% if (endPage < meta.totalPages) { %>
+                                                                        <% if (endPage < meta.totalPages - 1) { %>
+                                                                            <span class="pagination-btn">...</span>
+                                                                            <% } %>
+                                                                                <a href="?page=<%= meta.totalPages %>&limit=<%= meta.limit %>"
+                                                                                    class="pagination-btn pagination-btn-inactive">
+                                                                                    <%= meta.totalPages %>
+                                                                                </a>
+                                                                                <% } %>
+
+                                                                                    <!-- Next Button -->
+                                                                                    <% if (meta.hasNextPage) { %>
+                                                                                        <a href="?page=<%= meta.page + 1 %>&limit=<%= meta.limit %>"
+                                                                                            class="pagination-btn pagination-btn-inactive">
+                                                                                            <svg class="h-5 w-5"
+                                                                                                fill="none"
+                                                                                                stroke="currentColor"
+                                                                                                viewBox="0 0 24 24">
+                                                                                                <path
+                                                                                                    stroke-linecap="round"
+                                                                                                    stroke-linejoin="round"
+                                                                                                    stroke-width="2"
+                                                                                                    d="M9 5l7 7-7 7" />
+                                                                                            </svg>
+                                                                                        </a>
+                                                                                        <% } else { %>
+                                                                                            <span
+                                                                                                class="pagination-btn opacity-50 cursor-not-allowed">
+                                                                                                <svg class="h-5 w-5"
+                                                                                                    fill="none"
+                                                                                                    stroke="currentColor"
+                                                                                                    viewBox="0 0 24 24">
+                                                                                                    <path
+                                                                                                        stroke-linecap="round"
+                                                                                                        stroke-linejoin="round"
+                                                                                                        stroke-width="2"
+                                                                                                        d="M9 5l7 7-7 7" />
+                                                                                                </svg>
+                                                                                            </span>
+                                                                                            <% } %>
+
+                </div>
+
+            </div>
+        </div>
+        <% } %>
+
+</div>

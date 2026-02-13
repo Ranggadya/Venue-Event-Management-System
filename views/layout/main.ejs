@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-50">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="VenueManager Admin Dashboard - Manage Venue and Event efficiently">
+
+    <title>
+        <%= title || 'Event Manager' %> - Admin Dashboard
+    </title>
+
+    <!-- Tailwind CSS (Compiled) -->
+    <link rel="stylesheet" href="/css/output.css">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', system-ui, -apple-system, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="h-full">
+    <div class="flex h-screen overflow-hidden bg-slate-50">
+
+        <!-- Sidebar -->
+        <%- include('../partials/sidebar') %>
+
+            <!-- Main Content -->
+            <div class="flex-1 flex flex-col overflow-hidden">
+
+                <!-- Topbar -->
+                <%- include('../partials/topbar') %>
+
+                    <!-- Page Content -->
+                    <main class="flex-1 overflow-y-auto bg-slate-50">
+
+                        <!-- Alerts -->
+                        <%- include('../partials/alerts', { success: typeof success !=='undefined' ? success : null,
+                            error: typeof error !=='undefined' ? error : null }) %>
+
+                            <!-- Main Container -->
+                            <div class="px-4 sm:px-6 lg:px-8 py-6">
+                                <%- body %>
+                            </div>
+                    </main>
+
+                    <!-- Footer -->
+                    <%- include('../partials/footer') %>
+            </div>
+    </div>
+
+    <!-- Global JavaScript -->
+    <script src="/js/main.js"></script>
+
+    <!-- Page-specific scripts -->
+    <% if (locals.pageScript) { %>
+        <%- pageScript %>
+            <% } %>
+
+                <!-- Extracted scripts from layouts -->
+                <%- typeof script !=='undefined' ? script : '' %>
+
+</body>
+
+</html>

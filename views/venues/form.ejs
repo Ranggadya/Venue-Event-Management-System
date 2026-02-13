@@ -1,0 +1,284 @@
+<!-- Breadcrumb -->
+<nav class="breadcrumb mb-6">
+    <a href="/dashboard" class="breadcrumb-item">Dashboard</a>
+    <span class="breadcrumb-separator">/</span>
+    <a href="/venues" class="breadcrumb-item">Venues</a>
+    <span class="breadcrumb-separator">/</span>
+    <span class="text-slate-900 font-medium">
+        <%= venue ? 'Edit' : 'Create' %>
+    </span>
+</nav>
+
+<!-- Page Header -->
+<div class="mb-6">
+    <h1 class="text-2xl font-bold text-slate-900">
+        <%= venue ? 'Edit Venue' : 'Create New Venue' %>
+    </h1>
+    <p class="text-slate-600 mt-1">
+        <%= venue ? 'Update venue information and pricing' : 'Add a new venue to your system' %>
+    </p>
+</div>
+
+<!-- Error Alert (if any) -->
+<% if (typeof error !=='undefined' && error) { %>
+    <div class="alert-error mb-6">
+        <div class="flex items-start">
+            <svg class="h-5 w-5 text-red-500 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div class="flex-1">
+                <h3 class="text-sm font-medium text-red-800">Error</h3>
+                <p class="text-sm text-red-700 mt-1">
+                    <%= error %>
+                </p>
+            </div>
+        </div>
+    </div>
+    <% } %>
+
+        <!-- Form -->
+        <form method="POST" action="<%= action %>" class="space-y-6" x-data="venueForm()">
+
+            <!-- Basic Information Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-lg font-semibold text-slate-900">Basic Information</h3>
+                    <p class="text-sm text-slate-600 mt-1">Enter the venue's basic details</p>
+                </div>
+                <div class="card-body space-y-4">
+
+                    <!-- Venue Name -->
+                    <div>
+                        <label for="name" class="form-label required">
+                            Venue Name
+                        </label>
+                        <input type="text" id="name" name="name" value="<%= venue ? venue.name : '' %>"
+                            class="form-input" placeholder="e.g., Grand Ballroom Jakarta" required maxlength="255">
+                        <p class="text-xs text-slate-500 mt-1">Maximum 255 characters</p>
+                    </div>
+
+                    <!-- Description -->
+                    <div>
+                        <label for="description" class="form-label">
+                            Description
+                        </label>
+                        <textarea id="description" name="description" rows="4" class="form-textarea"
+                            placeholder="Brief description of the venue and its features..."><%= venue && venue.description ? venue.description : '' %></textarea>
+                        <p class="text-xs text-slate-500 mt-1">Optional: Describe the venue's features, ambiance, etc.
+                        </p>
+                    </div>
+
+                    <!-- City & Address (Grid) -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                        <!-- City -->
+                        <div>
+                            <label for="city" class="form-label required">
+                                City
+                            </label>
+                            <input type="text" id="city" name="city" value="<%= venue ? venue.city : '' %>"
+                                class="form-input" placeholder="e.g., Jakarta" required maxlength="100">
+                        </div>
+
+                        <!-- Address -->
+                        <div>
+                            <label for="address" class="form-label required">
+                                Address
+                            </label>
+                            <input type="text" id="address" name="address" value="<%= venue ? venue.address : '' %>"
+                                class="form-input" placeholder="e.g., Jl. Sudirman No. 123" required maxlength="255">
+                        </div>
+
+                    </div>
+
+                    <!-- Capacity & Status (Grid) -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                        <!-- Capacity -->
+                        <div>
+                            <label for="capacity" class="form-label required">
+                                Capacity
+                            </label>
+                            <div class="relative">
+                                <input type="number" id="capacity" name="capacity"
+                                    value="<%= venue ? venue.capacity : '' %>" class="form-input pl-10"
+                                    placeholder="e.g., 500" required min="1" max="100000">
+                                <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-1">Maximum number of people</p>
+                        </div>
+
+                        <!-- Status -->
+                        <div>
+                            <label for="status" class="form-label required">
+                                Operational Status
+                            </label>
+                            <select id="status" name="status" class="form-select" required>
+                                <option value="ACTIVE" <%=!venue || venue.status==='ACTIVE' ? 'selected' : '' %>>
+                                    Active - Ready for bookings
+                                </option>
+                                <option value="MAINTENANCE" <%=venue && venue.status==='MAINTENANCE' ? 'selected' : ''
+                                    %>>
+                                    Maintenance - Under renovation/repair
+                                </option>
+                                <option value="INACTIVE" <%=venue && venue.status==='INACTIVE' ? 'selected' : '' %>>
+                                    Inactive - No longer in operation
+                                </option>
+                            </select>
+                            <p class="text-xs text-slate-500 mt-1">
+                                Only ACTIVE venues can accept new bookings
+                            </p>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Pricing Information Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-lg font-semibold text-slate-900">Pricing Information</h3>
+                    <p class="text-sm text-slate-600 mt-1">Set rental prices for this venue</p>
+                </div>
+                <div class="card-body space-y-4">
+
+                    <!-- Currency -->
+                    <div>
+                        <label for="currency" class="form-label">
+                            Currency
+                        </label>
+                        <select id="currency" name="currency" class="form-select" x-model="currency">
+                            <option value="IDR" <%=!venue || venue.currency==='IDR' ? 'selected' : '' %>>IDR (Indonesian
+                                Rupiah)</option>
+                            <option value="USD" <%=venue && venue.currency==='USD' ? 'selected' : '' %>>USD (US Dollar)
+                            </option>
+                            <option value="EUR" <%=venue && venue.currency==='EUR' ? 'selected' : '' %>>EUR (Euro)
+                            </option>
+                            <option value="SGD" <%=venue && venue.currency==='SGD' ? 'selected' : '' %>>SGD (Singapore
+                                Dollar)</option>
+                        </select>
+                    </div>
+
+                    <!-- Price Per Hour & Per Day (Grid) -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                        <!-- Price Per Hour -->
+                        <div>
+                            <label for="pricePerHour" class="form-label">
+                                Price Per Hour
+                            </label>
+                            <div class="relative">
+                                <div class="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-slate-500"
+                                    x-text="currencySymbol"></div>
+                                <input type="number" id="pricePerHour" name="pricePerHour"
+                                    value="<%= venue && venue.pricePerHour ? venue.pricePerHour : '' %>"
+                                    class="form-input pl-12" placeholder="0" min="0" step="0.01">
+                            </div>
+                            <p class="text-xs text-slate-500 mt-1">Hourly rental rate (optional)</p>
+                        </div>
+
+                        <!-- Price Per Day -->
+                        <div>
+                            <label for="pricePerDay" class="form-label required">
+                                Price Per Day
+                            </label>
+                            <div class="relative">
+                                <div class="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-slate-500"
+                                    x-text="currencySymbol"></div>
+                                <input type="number" id="pricePerDay" name="pricePerDay"
+                                    value="<%= venue && venue.pricePerDay ? venue.pricePerDay : '' %>"
+                                    class="form-input pl-12" placeholder="0" required min="0" step="0.01">
+                            </div>
+                            <p class="text-xs text-slate-500 mt-1">Daily rental rate (required)</p>
+                        </div>
+
+                    </div>
+
+                    <!-- Pricing Info Box -->
+                    <div class="bg-sky-50 border border-sky-200 rounded-lg p-4">
+                        <div class="flex items-start">
+                            <svg class="h-5 w-5 text-sky-500 mr-3 flex-shrink-0 mt-0.5" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <div class="text-sm text-sky-800">
+                                <p class="font-medium">Pricing Tips:</p>
+                                <ul class="mt-2 space-y-1 list-disc list-inside text-sky-700">
+                                    <li>Price per day is required, hourly rate is optional</li>
+                                    <li>System will automatically choose the best rate for events</li>
+                                    <li>You can update prices anytime</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="flex items-center justify-between">
+                <a href="<%= venue ? '/venues/' + venue.id : '/venues' %>" class="btn btn-secondary">
+                    <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Cancel
+                </a>
+
+                <div class="flex items-center space-x-3">
+                    <% if (venue) { %>
+                        <!-- Save & Continue Editing -->
+                        <button type="submit" name="action" value="save_continue" class="btn btn-outline">
+                            <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                            </svg>
+                            Save & Continue
+                        </button>
+                        <% } %>
+
+                            <!-- Save (Main Action) -->
+                            <button type="submit" class="btn btn-primary">
+                                <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M5 13l4 4L19 7" />
+                                </svg>
+                                <%= venue ? 'Update Venue' : 'Create Venue' %>
+                            </button>
+                </div>
+            </div>
+
+        </form>
+
+        <!-- Alpine.js Component -->
+        <script>
+            function venueForm() {
+                return {
+                    currency: "<%= venue && venue.currency ? venue.currency : 'IDR' %>",
+
+                    get currencySymbol() {
+                        const symbols = {
+                            'IDR': 'Rp',
+                            'USD': '$',
+                            'EUR': '€',
+                            'SGD': 'S$'
+                        };
+                        return symbols[this.currency] || this.currency;
+                    }
+                }
+            }
+        </script>
+
+        <style>
+            .form-label.required::after {
+                content: ' *';
+                color: #ef4444;
+            }
+        </style>

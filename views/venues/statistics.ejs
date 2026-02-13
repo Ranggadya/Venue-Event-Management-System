@@ -1,0 +1,329 @@
+<!-- Breadcrumb -->
+<nav class="breadcrumb mb-6">
+    <a href="/dashboard" class="breadcrumb-item">Dashboard</a>
+    <span class="breadcrumb-separator">/</span>
+    <a href="/venues" class="breadcrumb-item">Venues</a>
+    <span class="breadcrumb-separator">/</span>
+    <span class="text-slate-900 font-medium">Statistics</span>
+</nav>
+
+<!-- Page Header -->
+<div class="mb-6">
+    <h1 class="text-2xl font-bold text-slate-900">Venue Statistics</h1>
+    <p class="text-slate-600 mt-1">Overview of all venue metrics and analytics</p>
+</div>
+
+<!-- Error State -->
+<% if (typeof error !=='undefined' && error) { %>
+    <div class="alert-error">
+        <div class="flex items-start">
+            <svg class="h-5 w-5 text-red-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+                <h3 class="text-sm font-medium text-red-800">Error</h3>
+                <p class="text-sm text-red-700 mt-1">
+                    <%= error %>
+                </p>
+            </div>
+        </div>
+    </div>
+    <% } else if (statistics) { %>
+
+        <!-- Overview Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+
+            <!-- Total Venues -->
+            <div class="card-hover">
+                <div class="card-body">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-slate-600 mb-1">Total Venues</p>
+                            <p class="text-3xl font-bold text-slate-900">
+                                <%= statistics.total %>
+                            </p>
+                        </div>
+                        <div class="stat-icon bg-primary-100">
+                            <svg class="h-6 w-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Average Capacity -->
+            <div class="card-hover">
+                <div class="card-body">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-slate-600 mb-1">Avg Capacity</p>
+                            <p class="text-3xl font-bold text-slate-900">
+                                <%= statistics.capacity && statistics.capacity.average ?
+                                    Math.round(statistics.capacity.average) : 0 %>
+                            </p>
+                            <p class="text-xs text-slate-500 mt-1">people</p>
+                        </div>
+                        <div class="stat-icon bg-accent-100">
+                            <svg class="h-6 w-6 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Min Capacity -->
+            <div class="card-hover">
+                <div class="card-body">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-slate-600 mb-1">Min Capacity</p>
+                            <p class="text-3xl font-bold text-slate-900">
+                                <%= statistics.capacity && statistics.capacity.minimum ? statistics.capacity.minimum : 0
+                                    %>
+                            </p>
+                            <p class="text-xs text-slate-500 mt-1">smallest venue</p>
+                        </div>
+                        <div class="stat-icon bg-emerald-100">
+                            <svg class="h-6 w-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Max Capacity -->
+            <div class="card-hover">
+                <div class="card-body">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-slate-600 mb-1">Max Capacity</p>
+                            <p class="text-3xl font-bold text-slate-900">
+                                <%= statistics.capacity && statistics.capacity.maximum ? statistics.capacity.maximum : 0
+                                    %>
+                            </p>
+                            <p class="text-xs text-slate-500 mt-1">largest venue</p>
+                        </div>
+                        <div class="stat-icon bg-amber-100">
+                            <svg class="h-6 w-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Status Breakdown -->
+        <% if (statistics.byStatus && statistics.byStatus.length> 0) { %>
+            <div class="card mb-8">
+                <div class="card-header">
+                    <h3 class="text-lg font-semibold text-slate-900">Venues by Status</h3>
+                    <p class="text-sm text-slate-600 mt-1">Distribution of venues across different statuses</p>
+                </div>
+                <div class="card-body">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <% statistics.byStatus.forEach(stat=> { %>
+                            <div class="text-center p-6 bg-slate-50 rounded-lg border-2 <%= 
+                stat.status === 'AVAILABLE' ? 'border-emerald-200' :
+                stat.status === 'BOOKED' ? 'border-amber-200' :
+                stat.status === 'MAINTENANCE' ? 'border-red-200' :
+                'border-slate-200'
+            %>">
+                                <div class="inline-flex items-center justify-center h-12 w-12 rounded-full mb-3 <%= 
+                    stat.status === 'AVAILABLE' ? 'bg-emerald-100' :
+                    stat.status === 'BOOKED' ? 'bg-amber-100' :
+                    stat.status === 'MAINTENANCE' ? 'bg-red-100' :
+                    'bg-slate-100'
+                %>">
+                                    <% if (stat.status==='AVAILABLE' ) { %>
+                                        <svg class="h-6 w-6 text-emerald-600" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <% } else if (stat.status==='BOOKED' ) { %>
+                                            <svg class="h-6 w-6 text-amber-600" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            <% } else if (stat.status==='MAINTENANCE' ) { %>
+                                                <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                                </svg>
+                                                <% } else { %>
+                                                    <svg class="h-6 w-6 text-slate-600" fill="none"
+                                                        stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                                                    </svg>
+                                                    <% } %>
+                                </div>
+                                <p class="text-3xl font-bold <%= 
+                    stat.status === 'AVAILABLE' ? 'text-emerald-600' :
+                    stat.status === 'BOOKED' ? 'text-amber-600' :
+                    stat.status === 'MAINTENANCE' ? 'text-red-600' :
+                    'text-slate-600'
+                %>">
+                                    <%= stat.count %>
+                                </p>
+                                <p class="text-sm text-slate-600 mt-2 font-medium uppercase">
+                                    <%= stat.status %>
+                                </p>
+                                <p class="text-xs text-slate-500 mt-1">
+                                    <%= statistics.total> 0 ? ((stat.count / statistics.total) * 100).toFixed(1) : 0 %>
+                                        %
+                                </p>
+                            </div>
+                            <% }); %>
+                    </div>
+                </div>
+            </div>
+            <% } %>
+
+                <!-- Top Cities -->
+                <% if (statistics.topCities && statistics.topCities.length> 0) { %>
+                    <div class="card mb-8">
+                        <div class="card-header">
+                            <h3 class="text-lg font-semibold text-slate-900">Top Cities</h3>
+                            <p class="text-sm text-slate-600 mt-1">Cities with the most venues</p>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="table">
+                                <thead class="table-header">
+                                    <tr>
+                                        <th class="table-header-cell">Rank</th>
+                                        <th class="table-header-cell">City</th>
+                                        <th class="table-header-cell">Number of Venues</th>
+                                        <th class="table-header-cell">Percentage</th>
+                                        <th class="table-header-cell text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="table-body">
+                                    <% statistics.topCities.forEach((city, index)=> { %>
+                                        <tr class="table-row-hover">
+                                            <td class="table-cell">
+                                                <div class="inline-flex items-center justify-center h-8 w-8 rounded-full <%= 
+                            index === 0 ? 'bg-amber-100 text-amber-600' :
+                            index === 1 ? 'bg-slate-200 text-slate-700' :
+                            index === 2 ? 'bg-orange-100 text-orange-600' :
+                            'bg-slate-100 text-slate-600' %> font-bold text-sm">
+                                                    <%= index + 1 %>
+                                                </div>
+                                            </td>
+                                            <td class="table-cell">
+                                                <div class="flex items-center">
+                                                    <svg class="h-5 w-5 text-slate-400 mr-2" fill="none"
+                                                        stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                    </svg>
+                                                    <span class="font-medium text-slate-900">
+                                                        <%= city.city %>
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td class="table-cell">
+                                                <span class="text-slate-900 font-medium">
+                                                    <%= city.count %>
+                                                </span> venues
+                                            </td>
+                                            <td class="table-cell">
+                                                <div class="flex items-center">
+                                                    <div class="flex-1 max-w-xs">
+                                                        <div class="h-2 bg-slate-200 rounded-full overflow-hidden">
+                                                            <div class="h-full bg-primary-500 rounded-full" <%-
+                                                                `style="width: ${statistics.total > 0 ? (city.count / statistics.total * 100).toFixed(2) : 0}%;"
+                                                                ` %>>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <span class="ml-3 text-sm font-medium text-slate-700">
+                                                        <%= statistics.total> 0 ? ((city.count / statistics.total) *
+                                                            100).toFixed(1) : 0 %> %
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td class="table-cell text-right">
+                                                <a href="/venues?city=<%= encodeURIComponent(city.city) %>"
+                                                    class="btn btn-sm btn-outline">
+                                                    View Venues
+                                                    <svg class="h-4 w-4 ml-1" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2" d="M9 5l7 7-7 7" />
+                                                    </svg>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        <% }); %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <% } %>
+
+                        <!-- Quick Actions -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                            <a href="/venues" class="card-hover card-body group">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <h3 class="text-lg font-semibold text-slate-900 mb-1">View All Venues</h3>
+                                        <p class="text-sm text-slate-600">Browse complete venue list</p>
+                                    </div>
+                                    <svg class="h-8 w-8 text-slate-400 group-hover:text-primary-600 transition-colors"
+                                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </div>
+                            </a>
+
+                            <a href="/venues/create" class="card-hover card-body group">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <h3 class="text-lg font-semibold text-slate-900 mb-1">Add New Venue</h3>
+                                        <p class="text-sm text-slate-600">Create a new venue entry</p>
+                                    </div>
+                                    <svg class="h-8 w-8 text-slate-400 group-hover:text-primary-600 transition-colors"
+                                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 4v16m8-8H4" />
+                                    </svg>
+                                </div>
+                            </a>
+
+                            <a href="/dashboard" class="card-hover card-body group">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <h3 class="text-lg font-semibold text-slate-900 mb-1">Back to Dashboard</h3>
+                                        <p class="text-sm text-slate-600">Return to main dashboard</p>
+                                    </div>
+                                    <svg class="h-8 w-8 text-slate-400 group-hover:text-primary-600 transition-colors"
+                                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                                    </svg>
+                                </div>
+                            </a>
+
+                        </div>
+
+                        <% } %>

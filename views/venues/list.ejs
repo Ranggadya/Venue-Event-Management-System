@@ -1,0 +1,451 @@
+<!-- Page Header -->
+<div class="flex items-center justify-between mb-6">
+    <div>
+        <h1 class="text-2xl font-bold text-slate-900">Venue Management</h1>
+        <p class="text-slate-600 mt-1">Manage all venues and locations</p>
+    </div>
+    <a href="/venues/create" class="btn btn-primary">
+        <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        Add New Venue
+    </a>
+</div>
+
+<!-- Filters & Search -->
+<div class="card mb-6">
+    <div class="card-body">
+        <form method="GET" action="/venues" class="space-y-4" x-data="{ 
+            search: '<%= query.search || '' %>',
+            city: '<%= query.city || '' %>',
+            status: '<%= query.status || '' %>',
+            sortBy: '<%= query.sortBy || 'createdAt' %>',
+            sortOrder: '<%= query.sortOrder || 'desc' %>'
+        }">
+
+            <!-- First Row: Search & Quick Filters -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+                <!-- Search Input -->
+                <div class="md:col-span-2">
+                    <label for="search" class="form-label">Search</label>
+                    <div class="relative">
+                        <input type="text" id="search" name="search" x-model="search"
+                            placeholder="Search by name, city, or address..." class="form-input pl-10">
+                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- City Filter -->
+                <div>
+                    <label for="city" class="form-label">City</label>
+                    <input type="text" id="city" name="city" x-model="city" placeholder="Filter by city"
+                        class="form-input">
+                </div>
+                <!-- Status Filter -->
+                <div>
+                    <label for="status" class="form-label">Operational Status</label>
+                    <select id="status" name="status" x-model="status" class="form-select">
+                        <option value="">All Status</option>
+                        <option value="ACTIVE">Active</option>
+                        <option value="MAINTENANCE">Maintenance</option>
+                        <option value="INACTIVE">Inactive</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <!-- Second Row: Sort Options & Actions -->
+            <div class="flex flex-wrap items-end gap-4">
+
+                <!-- Sort By -->
+                <div class="flex-1 min-w-[200px]">
+                    <label for="sortBy" class="form-label">Sort By</label>
+                    <select id="sortBy" name="sortBy" x-model="sortBy" class="form-select">
+                        <option value="name">Name</option>
+                        <option value="city">City</option>
+                        <option value="capacity">Capacity</option>
+                        <option value="pricePerDay">Price</option>
+                        <option value="createdAt">Created Date</option>
+                        <option value="updatedAt">Updated Date</option>
+                    </select>
+                </div>
+
+                <!-- Sort Order -->
+                <div class="flex-1 min-w-[200px]">
+                    <label for="sortOrder" class="form-label">Order</label>
+                    <select id="sortOrder" name="sortOrder" x-model="sortOrder" class="form-select">
+                        <option value="asc">Ascending (A-Z, Low-High)</option>
+                        <option value="desc">Descending (Z-A, High-Low)</option>
+                    </select>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                        </svg>
+                        Apply Filters
+                    </button>
+                    <a href="/venues" class="btn btn-secondary">
+                        <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        Reset
+                    </a>
+                </div>
+
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<!-- Results Summary -->
+<div class="flex items-center justify-between mb-4">
+    <div class="text-sm text-slate-600">
+        Showing <span class="font-medium text-slate-900">
+            <%= (meta.page - 1) * meta.limit + 1 %>
+        </span>
+        to <span class="font-medium text-slate-900">
+            <%= Math.min(meta.page * meta.limit, meta.total) %>
+        </span>
+        of <span class="font-medium text-slate-900">
+            <%= meta.total %>
+        </span> venues
+    </div>
+
+    <!-- View Toggle (Optional) -->
+    <div class="flex items-center space-x-2">
+        <span class="text-sm text-slate-600">Per page:</span>
+        <select onchange="window.location.href='?limit=' + this.value + '&page=1'" class="form-select text-sm py-1">
+            <option value="10" <%=meta.limit===10 ? 'selected' : '' %>>10</option>
+            <option value="25" <%=meta.limit===25 ? 'selected' : '' %>>25</option>
+            <option value="50" <%=meta.limit===50 ? 'selected' : '' %>>50</option>
+            <option value="100" <%=meta.limit===100 ? 'selected' : '' %>>100</option>
+        </select>
+    </div>
+</div>
+
+<!-- Venues Table -->
+<div class="card">
+    <div class="overflow-x-auto">
+        <table class="table">
+            <thead class="table-header">
+                <tr>
+                    <th class="table-header-cell w-8">
+                        <input type="checkbox" class="form-checkbox" title="Select all">
+                    </th>
+                    <th class="table-header-cell">Venue Name</th>
+                    <th class="table-header-cell">Location</th>
+                    <th class="table-header-cell">Capacity</th>
+                    <th class="table-header-cell">Pricing</th>
+                    <th class="table-header-cell">Status</th>
+                    <th class="table-header-cell">Events</th>
+                    <th class="table-header-cell text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="table-body">
+                <% if (venues && venues.length> 0) { %>
+                    <% venues.forEach(venue=> { %>
+                        <tr class="table-row-hover">
+                            <!-- Checkbox -->
+                            <td class="table-cell">
+                                <input type="checkbox" class="form-checkbox" value="<%= venue.id %>">
+                            </td>
+
+                            <!-- Venue Name -->
+                            <td class="table-cell">
+                                <div class="flex items-center">
+                                    <div
+                                        class="h-10 w-10 flex-shrink-0 bg-primary-100 rounded-lg flex items-center justify-center mr-3">
+                                        <svg class="h-5 w-5 text-primary-600" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <a href="/venues/<%= venue.id %>"
+                                            class="font-medium text-slate-900 hover:text-primary-600 transition-colors">
+                                            <%= venue.name %>
+                                        </a>
+                                        <% if (venue.description) { %>
+                                            <p class="text-xs text-slate-500 mt-0.5 truncate max-w-xs">
+                                                <%= venue.description.substring(0, 50) %>
+                                                    <%= venue.description.length> 50 ? '...' : '' %>
+                                            </p>
+                                            <% } %>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <!-- Location -->
+                            <td class="table-cell">
+                                <div class="text-sm text-slate-900">
+                                    <%= venue.city %>
+                                </div>
+                                <% if (venue.address) { %>
+                                    <div class="text-xs text-slate-500 truncate max-w-xs">
+                                        <%= venue.address %>
+                                    </div>
+                                    <% } %>
+                            </td>
+
+                            <!-- Capacity -->
+                            <td class="table-cell">
+                                <div class="flex items-center text-slate-900">
+                                    <svg class="h-4 w-4 mr-1 text-slate-400" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                    </svg>
+                                    <span class="font-medium">
+                                        <%= venue.capacity %>
+                                    </span>
+                                </div>
+                                <div class="text-xs text-slate-500">people</div>
+                            </td>
+
+                            <!-- Pricing -->
+                            <td class="table-cell">
+                                <% if (venue.pricePerDay) { %>
+                                    <div class="text-sm font-medium text-slate-900">
+                                        <%= new Intl.NumberFormat('id-ID', { style: 'currency' , currency:
+                                            venue.currency || 'IDR' , minimumFractionDigits: 0
+                                            }).format(venue.pricePerDay) %>
+                                    </div>
+                                    <div class="text-xs text-slate-500">per day</div>
+                                    <% } %>
+                                        <% if (venue.pricePerHour) { %>
+                                            <div class="text-xs text-slate-600 mt-1">
+                                                <%= new Intl.NumberFormat('id-ID', { style: 'currency' , currency:
+                                                    venue.currency || 'IDR' , minimumFractionDigits: 0
+                                                    }).format(venue.pricePerHour) %>/hr
+                                            </div>
+                                            <% } %>
+                            </td>
+
+                            <!-- Status -->
+                            <td class="table-cell">
+                                <span class="badge <%= 
+        venue.status === 'ACTIVE' ? 'badge-success' :
+        venue.status === 'MAINTENANCE' ? 'badge-warning' :
+        'badge-danger'
+    %>">
+                                    <%= venue.status %>
+                                </span>
+                                <% if (venue.status==='MAINTENANCE' ) { %>
+                                    <p class="text-xs text-amber-600 mt-1">Under renovation</p>
+                                    <% } else if (venue.status==='INACTIVE' ) { %>
+                                        <p class="text-xs text-red-600 mt-1">No longer in use</p>
+                                        <% } %>
+                            </td>
+
+                            <!-- Events Count -->
+                            <td class="table-cell">
+                                <% if (venue._count && venue._count.events !==undefined) { %>
+                                    <a href="/events?venueId=<%= venue.id %>"
+                                        class="inline-flex items-center text-sm text-primary-600 hover:text-primary-700 font-medium">
+                                        <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                        <%= venue._count.events %> events
+                                    </a>
+                                    <% } else { %>
+                                        <span class="text-sm text-slate-500">-</span>
+                                        <% } %>
+                            </td>
+
+                            <!-- Actions -->
+                            <td class="table-cell">
+                                <div class="flex items-center justify-end space-x-2">
+                                    <!-- View Button -->
+                                    <a href="/venues/<%= venue.id %>"
+                                        class="p-1.5 text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded transition-colors"
+                                        title="View Details">
+                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                    </a>
+
+                                    <!-- Edit Button -->
+                                    <a href="/venues/<%= venue.id %>/edit"
+                                        class="p-1.5 text-slate-400 hover:text-sky-600 hover:bg-sky-50 rounded transition-colors"
+                                        title="Edit Venue">
+                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        </svg>
+                                    </a>
+
+                                    <!-- Delete Button -->
+                                    <form method="POST" action="/venues/<%= venue.id %>/delete" class="inline-block"
+                                        data-item-name="<%= venue.name %>"
+                                        onsubmit="return confirm('Are you sure you want to delete <%= venue.name %>? This action cannot be undone.');">
+                                        <button type="submit"
+                                            class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                                            title="Delete Venue">
+                                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        <% }); %>
+                            <% } else { %>
+                                <!-- Empty State -->
+                                <tr>
+                                    <td colspan="8" class="table-cell text-center py-16">
+                                        <svg class="mx-auto h-16 w-16 text-slate-400" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                        </svg>
+                                        <h3 class="mt-4 text-lg font-medium text-slate-900">No venues found</h3>
+                                        <p class="mt-2 text-sm text-slate-500">
+                                            <% if (query.search || query.city || query.status) { %>
+                                                Try adjusting your search or filter criteria
+                                                <% } else { %>
+                                                    Get started by creating your first venue
+                                                    <% } %>
+                                        </p>
+                                        <div class="mt-6 space-x-3">
+                                            <% if (query.search || query.city || query.status) { %>
+                                                <a href="/venues" class="btn btn-secondary">Clear Filters</a>
+                                                <% } %>
+                                                    <a href="/venues/create" class="btn btn-primary">
+                                                        <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor"
+                                                            viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2" d="M12 4v16m8-8H4" />
+                                                        </svg>
+                                                        Create New Venue
+                                                    </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <% } %>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <% if (meta.totalPages> 1) { %>
+        <div class="card-footer">
+            <div class="flex items-center justify-between">
+
+                <!-- Page Info -->
+                <div class="text-sm text-slate-600">
+                    Page <span class="font-medium">
+                        <%= meta.page %>
+                    </span> of <span class="font-medium">
+                        <%= meta.totalPages %>
+                    </span>
+                </div>
+
+                <!-- Pagination Controls -->
+                <div class="pagination">
+
+                    <!-- Previous Button -->
+                    <% if (meta.hasPreviousPage) { %>
+                        <a href="?page=<%= meta.page - 1 %>&limit=<%= meta.limit %><%= query.search ? '&search=' + query.search : '' %><%= query.city ? '&city=' + query.city : '' %><%= query.status ? '&status=' + query.status : '' %><%= query.sortBy ? '&sortBy=' + query.sortBy : '' %><%= query.sortOrder ? '&sortOrder=' + query.sortOrder : '' %>"
+                            class="pagination-btn pagination-btn-inactive">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 19l-7-7 7-7" />
+                            </svg>
+                        </a>
+                        <% } else { %>
+                            <span class="pagination-btn opacity-50 cursor-not-allowed">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 19l-7-7 7-7" />
+                                </svg>
+                            </span>
+                            <% } %>
+
+                                <!-- Page Numbers -->
+                                <% const startPage=Math.max(1, meta.page - 2); const endPage=Math.min(meta.totalPages,
+                                    meta.page + 2); if (startPage> 1) { %>
+                                    <a href="?page=1&limit=<%= meta.limit %><%= query.search ? '&search=' + query.search : '' %><%= query.city ? '&city=' + query.city : '' %><%= query.status ? '&status=' + query.status : '' %><%= query.sortBy ? '&sortBy=' + query.sortBy : '' %><%= query.sortOrder ? '&sortOrder=' + query.sortOrder : '' %>"
+                                        class="pagination-btn pagination-btn-inactive">1</a>
+                                    <% if (startPage> 2) { %>
+                                        <span class="pagination-btn">...</span>
+                                        <% } %>
+                                            <% } %>
+
+                                                <% for (let i=startPage; i <=endPage; i++) { %>
+                                                    <% if (i===meta.page) { %>
+                                                        <span class="pagination-btn pagination-btn-active">
+                                                            <%= i %>
+                                                        </span>
+                                                        <% } else { %>
+                                                            <a href="?page=<%= i %>&limit=<%= meta.limit %><%= query.search ? '&search=' + query.search : '' %><%= query.city ? '&city=' + query.city : '' %><%= query.status ? '&status=' + query.status : '' %><%= query.sortBy ? '&sortBy=' + query.sortBy : '' %><%= query.sortOrder ? '&sortOrder=' + query.sortOrder : '' %>"
+                                                                class="pagination-btn pagination-btn-inactive">
+                                                                <%= i %>
+                                                            </a>
+                                                            <% } %>
+                                                                <% } %>
+
+                                                                    <% if (endPage < meta.totalPages) { %>
+                                                                        <% if (endPage < meta.totalPages - 1) { %>
+                                                                            <span class="pagination-btn">...</span>
+                                                                            <% } %>
+                                                                                <a href="?page=<%= meta.totalPages %>&limit=<%= meta.limit %><%= query.search ? '&search=' + query.search : '' %><%= query.city ? '&city=' + query.city : '' %><%= query.status ? '&status=' + query.status : '' %><%= query.sortBy ? '&sortBy=' + query.sortBy : '' %><%= query.sortOrder ? '&sortOrder=' + query.sortOrder : '' %>"
+                                                                                    class="pagination-btn pagination-btn-inactive">
+                                                                                    <%= meta.totalPages %>
+                                                                                </a>
+                                                                                <% } %>
+
+                                                                                    <!-- Next Button -->
+                                                                                    <% if (meta.hasNextPage) { %>
+                                                                                        <a href="?page=<%= meta.page + 1 %>&limit=<%= meta.limit %><%= query.search ? '&search=' + query.search : '' %><%= query.city ? '&city=' + query.city : '' %><%= query.status ? '&status=' + query.status : '' %><%= query.sortBy ? '&sortBy=' + query.sortBy : '' %><%= query.sortOrder ? '&sortOrder=' + query.sortOrder : '' %>"
+                                                                                            class="pagination-btn pagination-btn-inactive">
+                                                                                            <svg class="h-5 w-5"
+                                                                                                fill="none"
+                                                                                                stroke="currentColor"
+                                                                                                viewBox="0 0 24 24">
+                                                                                                <path
+                                                                                                    stroke-linecap="round"
+                                                                                                    stroke-linejoin="round"
+                                                                                                    stroke-width="2"
+                                                                                                    d="M9 5l7 7-7 7" />
+                                                                                            </svg>
+                                                                                        </a>
+                                                                                        <% } else { %>
+                                                                                            <span
+                                                                                                class="pagination-btn opacity-50 cursor-not-allowed">
+                                                                                                <svg class="h-5 w-5"
+                                                                                                    fill="none"
+                                                                                                    stroke="currentColor"
+                                                                                                    viewBox="0 0 24 24">
+                                                                                                    <path
+                                                                                                        stroke-linecap="round"
+                                                                                                        stroke-linejoin="round"
+                                                                                                        stroke-width="2"
+                                                                                                        d="M9 5l7 7-7 7" />
+                                                                                                </svg>
+                                                                                            </span>
+                                                                                            <% } %>
+
+                </div>
+
+            </div>
+        </div>
+        <% } %>
+</div>

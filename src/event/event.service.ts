@@ -1,9 +1,10 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import {
   Injectable,
   NotFoundException,
   BadRequestException,
   Logger,
+  ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateEventDto } from './dto/create-event.dto';
@@ -22,18 +23,130 @@ export class EventService {
     return uuidRegex.test(uuid);
   }
 
-  constructor(private readonly prisma: PrismaService) { }
+  private validateNotPastDate(datetime: Date): void {
+    const now = new Date();
+    if (datetime < now) {
+      throw new BadRequestException(
+        'Cannot create or update event with past date. Please select a future date.',
+      );
+    }
+  }
+
+  /**
+   * 🆕 VALIDASI: Cek kapasitas venue vs jumlah peserta
+   */
+  private async validateVenueCapacity(
+    venueId: string,
+    attendeeCount: number,
+  ): Promise<void> {
+    if (!attendeeCount || attendeeCount <= 0) {
+      return; // Skip validation if no attendee count provided
+    }
+
+    const venue = await this.prisma.venue.findUnique({
+      where: { id: venueId },
+      select: { capacity: true, name: true },
+    });
+
+    if (!venue) {
+      throw new NotFoundException('Venue not found');
+    }
+
+    if (Number(attendeeCount) <= venue.capacity) {
+      throw new BadRequestException(
+        `Attendee count (${attendeeCount}) must be greater than venue capacity (${venue.capacity}).`,
+      );
+    }
+  }
+
+  private async validateVenueActive(venueId: string): Promise<void> {
+    const venue = await this.prisma.venue.findUnique({
+      where: { id: venueId },
+      select: { status: true, name: true },
+    });
+
+    if (!venue) {
+      throw new NotFoundException('Venue not found');
+    }
+
+    if (venue.status === 'INACTIVE') {
+      throw new BadRequestException(
+        `Cannot book venue "${venue.name}" because it is currently inactive. Please choose another venue or contact administrator.`,
+      );
+    }
+  }
+
+  private validateDateTimeRange(startDatetime: Date, endDatetime: Date): void {
+    if (startDatetime >= endDatetime) {
+      throw new BadRequestException(
+        'End datetime must be after start datetime',
+      );
+    }
+
+    const durationHours =
+      (endDatetime.getTime() - startDatetime.getTime()) / (1000 * 60 * 60);
+
+    if (durationHours < 1) {
+      throw new BadRequestException('Event duration must be at least 1 hour');
+    }
+
+    if (durationHours > 720) {
+      // 30 days
+      throw new BadRequestException(
+        'Event duration cannot exceed 30 days. Please split into multiple events.',
+      );
+    }
+  }
+
+  private toNumber(value: any): number {
+    if (value === null || value === undefined) {
+      return 0;
+    }
+
+    if (typeof value === 'number') {
+      return value;
+    }
+
+    // Prisma Decimal has toNumber() method
+    if (typeof value === 'object' && typeof value.toNumber === 'function') {
+      return value.toNumber();
+    }
+
+    // Fallback: try to convert to number
+    const num = Number(value);
+    return isNaN(num) ? 0 : num;
+  }
+
+  constructor(private readonly prisma: PrismaService) {}
 
   async createEvent(createEventDto: CreateEventDto): Promise<Event> {
     this.logger.log(`Creating new event: ${createEventDto.name}`);
 
     // Validate datetime range
-    const startDate = new Date(createEventDto.startDatetime);
-    const endDate = new Date(createEventDto.endDatetime);
+    const startDatetime = new Date(createEventDto.startDatetime!);
+    const endDatetime = new Date(createEventDto.endDatetime!);
 
-    if (endDate <= startDate) {
-      throw new BadRequestException(
-        'End datetime must be after start datetime',
+    // 🆕 VALIDASI 1: Tanggal tidak boleh masa lalu
+    this.validateNotPastDate(startDatetime);
+
+    // VALIDASI 2: Range datetime valid
+    this.validateDateTimeRange(startDatetime, endDatetime);
+
+    // 🆕 VALIDASI 3: Venue harus aktif
+    await this.validateVenueActive(createEventDto.venueId);
+
+    // VALIDASI 4: Venue available (no double booking)
+    await this.checkVenueAvailability(
+      createEventDto.venueId,
+      startDatetime,
+      endDatetime,
+    );
+
+    // 🆕 VALIDASI 5: Capacity check
+    if (createEventDto.attendeeCount) {
+      await this.validateVenueCapacity(
+        createEventDto.venueId,
+        createEventDto.attendeeCount,
       );
     }
 
@@ -48,7 +161,10 @@ export class EventService {
       );
     }
 
-    const durationHours = PricingHelper.calculateDuration(startDate, endDate);
+    const durationHours = PricingHelper.calculateDuration(
+      startDatetime,
+      endDatetime,
+    );
 
     let rentalType = createEventDto.rentalType;
     if (!rentalType) {
@@ -70,22 +186,25 @@ export class EventService {
       basePrice,
       createEventDto.discount || 0,
       createEventDto.additionalFees || 0,
-    )
+    );
 
     try {
       const event = await this.prisma.event.create({
         data: {
           name: createEventDto.name,
           description: createEventDto.description || null,
-          startDatetime: startDate,
-          endDatetime: endDate,
+          startDatetime: startDatetime,
+          endDatetime: endDatetime,
           status: createEventDto.status || EventStatus.UPCOMING,
           venueId: createEventDto.venueId,
+          attendeeCount: createEventDto.attendeeCount,
           rentalType,
           basePrice: new Prisma.Decimal(basePrice),
           finalPrice: new Prisma.Decimal(finalPrice),
           discount: new Prisma.Decimal(createEventDto.discount || 0),
-          additionalFees: new Prisma.Decimal(createEventDto.additionalFees || 0),
+          additionalFees: new Prisma.Decimal(
+            createEventDto.additionalFees || 0,
+          ),
           isPaid: createEventDto.isPaid || false,
         },
         include: {
@@ -97,7 +216,7 @@ export class EventService {
               address: true,
               pricePerHour: true,
               pricePerDay: true,
-              currency: true
+              currency: true,
             },
           },
         },
@@ -118,12 +237,6 @@ export class EventService {
       );
     }
   }
-
-  /**
-   * Get all events with filtering, searching, sorting, and pagination
-   * @param queryDto - Query parameters for filtering and pagination
-   * @returns Paginated list of events
-   */
 
   async getAllEvents(queryDto: QueryEventDto) {
     const {
@@ -230,14 +343,6 @@ export class EventService {
     }
   }
 
-  /**
-   * Get single event by ID with venue details
-   * @param id - Event UUID
-   * @returns Event with complete venue information
-   * @throws NotFoundException if event not found
-   * @throws BadRequestException if ID format is invalid
-   */
-
   async getEventById(id: string): Promise<Event & { venue: any }> {
     this.logger.log(`Fetching event: ${id}`);
 
@@ -281,109 +386,209 @@ export class EventService {
       throw new BadRequestException('Failed to fetch event');
     }
   }
-  /**
-   * Update event by ID
-   * @param id - Event UUID
-   * @param updateEventDto - Update data
-   * @returns Updated event with venue details
-   * @throws NotFoundException if event not found
-   * @throws BadRequestException if validation fails
-   */
+
   async updateEvent(
     id: string,
     updateEventDto: UpdateEventDto,
   ): Promise<Event> {
     this.logger.log(`Updating event: ${id}`);
 
+    // Validate UUID format
     if (!this.isValidUUID(id)) {
       throw new BadRequestException('Invalid event ID format');
     }
 
+    // Get existing event with venue info
     const existingEvent = await this.prisma.event.findUnique({
       where: { id },
+      include: {
+        venue: {
+          select: {
+            id: true,
+            name: true,
+            capacity: true,
+            status: true,
+            pricePerHour: true,
+            pricePerDay: true,
+          },
+        },
+      },
     });
 
     if (!existingEvent) {
-      throw new BadRequestException(`Event with ID "${id}" not found`);
+      throw new NotFoundException(`Event with ID "${id}" not found`);
     }
 
-    // Validate datetime 
-    if (updateEventDto.startDatetime && updateEventDto.endDatetime) {
-      const startDate = new Date(updateEventDto.startDatetime);
-      const endDate = new Date(updateEventDto.endDatetime);
+    // Determine final values (use updated or existing)
+    const startDatetime = updateEventDto.startDatetime
+      ? new Date(updateEventDto.startDatetime)
+      : existingEvent.startDatetime;
+    const endDatetime = updateEventDto.endDatetime
+      ? new Date(updateEventDto.endDatetime)
+      : existingEvent.endDatetime;
+    const venueId = updateEventDto.venueId || existingEvent.venueId;
+    const attendeeCount =
+      updateEventDto.attendeeCount !== undefined
+        ? updateEventDto.attendeeCount
+        : existingEvent.attendeeCount;
 
-      if (endDate <= startDate) {
-        throw new BadRequestException(
-          'End datetime must be after start datetime',
-        );
-      }
+    // VALIDASI 1: Tanggal tidak boleh masa lalu (jika diubah)
+    if (updateEventDto.startDatetime) {
+      this.validateNotPastDate(startDatetime);
     }
 
-    // Validate datetime if only one is updated
-    if (updateEventDto.startDatetime && !updateEventDto.endDatetime) {
-      const startDate = new Date(updateEventDto.startDatetime);
-      if (existingEvent.endDatetime <= startDate) {
-        throw new BadRequestException(
-          'New start datetime must be before existing end datetime',
-        );
-      }
-    }
+    // VALIDASI 2: Range datetime valid
+    this.validateDateTimeRange(startDatetime, endDatetime);
 
-    if (updateEventDto.endDatetime && !updateEventDto.startDatetime) {
-      const endDate = new Date(updateEventDto.endDatetime);
-      if (endDate <= existingEvent.startDatetime) {
-        throw new BadRequestException(
-          'New end datetime must be after existing start datetime',
-        );
-      }
-    }
-
-    // Validate venue if changed
+    // VALIDASI 3: Venue harus ACTIVE (jika venue diubah)
     if (
       updateEventDto.venueId &&
       updateEventDto.venueId !== existingEvent.venueId
     ) {
-      const venueExists = await this.prisma.event.findUnique({
-        where: { id: updateEventDto.venueId },
-      });
+      await this.validateVenueActive(venueId);
+    }
 
-      if (!venueExists) {
-        throw new BadRequestException(
-          `Venue with Id "${updateEventDto.venueId}" not Found`,
-        );
+    // VALIDASI 4: Venue available (jika datetime atau venue diubah)
+    if (
+      updateEventDto.startDatetime ||
+      updateEventDto.endDatetime ||
+      updateEventDto.venueId
+    ) {
+      await this.checkVenueAvailability(
+        venueId,
+        startDatetime,
+        endDatetime,
+        id,
+      );
+    }
+
+    // VALIDASI 5: Capacity check (jika attendee atau venue diubah)
+    if (
+      attendeeCount &&
+      (updateEventDto.attendeeCount !== undefined || updateEventDto.venueId)
+    ) {
+      await this.validateVenueCapacity(venueId, attendeeCount);
+    }
+
+    // Prepare update data
+    const updateData: Prisma.EventUpdateInput = {};
+
+    // Basic fields
+    if (updateEventDto.name !== undefined) {
+      updateData.name = updateEventDto.name;
+    }
+
+    if (updateEventDto.description !== undefined) {
+      updateData.description = updateEventDto.description;
+    }
+
+    if (updateEventDto.startDatetime !== undefined) {
+      updateData.startDatetime = startDatetime;
+    }
+
+    if (updateEventDto.endDatetime !== undefined) {
+      updateData.endDatetime = endDatetime;
+    }
+
+    if (updateEventDto.status !== undefined) {
+      updateData.status = updateEventDto.status;
+    }
+
+    if (updateEventDto.venueId !== undefined) {
+      updateData.venue = {
+        connect: { id: updateEventDto.venueId },
+      };
+    }
+
+    if (updateEventDto.attendeeCount !== undefined) {
+      updateData.attendeeCount = updateEventDto.attendeeCount;
+    }
+
+    // Payment handling
+    if (updateEventDto.isPaid !== undefined) {
+      updateData.isPaid = updateEventDto.isPaid;
+
+      if (updateEventDto.isPaid === true && !existingEvent.isPaid) {
+        updateData.paymentDate = new Date();
+      } else if (updateEventDto.isPaid === false) {
+        updateData.paymentDate = null;
       }
     }
 
+    // RECALCULATE PRICING if needed
+    const shouldRecalculatePrice =
+      updateEventDto.startDatetime ||
+      updateEventDto.endDatetime ||
+      updateEventDto.venueId ||
+      updateEventDto.discount !== undefined ||
+      updateEventDto.additionalFees !== undefined;
+
+    if (shouldRecalculatePrice) {
+      const venue =
+        updateEventDto.venueId &&
+        updateEventDto.venueId !== existingEvent.venueId
+          ? await this.prisma.venue.findUnique({
+              where: { id: venueId },
+              select: {
+                pricePerHour: true,
+                pricePerDay: true,
+              },
+            })
+          : existingEvent.venue;
+
+      if (!venue) {
+        throw new NotFoundException('Venue not found');
+      }
+
+      // Calculate duration
+      const duration = PricingHelper.calculateDuration(
+        startDatetime,
+        endDatetime,
+      );
+
+      // Determine rental type
+      // Determine rental type
+      const rentalType = PricingHelper.getOptimalRentalType(
+        venue.pricePerHour,
+        venue.pricePerDay,
+        duration,
+      );
+
+      // Calculate base price
+      const basePrice = PricingHelper.calculateBasePrice(
+        rentalType,
+        venue.pricePerHour,
+        venue.pricePerDay,
+        duration,
+      );
+
+      // Calculate final price
+      const finalPrice = PricingHelper.calculateFinalPrice(
+        basePrice,
+        updateEventDto.discount !== undefined
+          ? this.toNumber(updateEventDto.discount)
+          : this.toNumber(existingEvent.discount),
+        updateEventDto.additionalFees !== undefined
+          ? this.toNumber(updateEventDto.additionalFees)
+          : this.toNumber(existingEvent.additionalFees),
+      );
+
+      updateData.rentalType = rentalType;
+      updateData.basePrice = basePrice;
+      updateData.finalPrice = finalPrice;
+    }
+
+    if (updateEventDto.discount !== undefined) {
+      updateData.discount = updateEventDto.discount;
+    }
+
+    if (updateEventDto.additionalFees !== undefined) {
+      updateData.additionalFees = updateEventDto.additionalFees;
+    }
+
+    // Execute update
     try {
-      const updateData: Prisma.EventUpdateInput = {};
-
-      if (updateEventDto.name !== undefined) {
-        updateData.name = updateEventDto.name;
-      }
-
-      if (updateEventDto.description !== undefined) {
-        updateData.description = updateEventDto.description;
-      }
-
-      if (updateEventDto.startDatetime !== undefined) {
-        updateData.startDatetime = updateEventDto.startDatetime;
-      }
-
-      if (updateEventDto.endDatetime !== undefined) {
-        updateData.endDatetime = updateEventDto.endDatetime;
-      }
-
-      if (updateEventDto.status !== undefined) {
-        updateData.status = updateEventDto.status;
-      }
-
-      if (updateEventDto.venueId !== undefined) {
-        updateData.venue = {
-          connect: { id: updateEventDto.venueId },
-        };
-      }
-
-      const event = await this.prisma.event.update({
+      const updatedEvent = await this.prisma.event.update({
         where: { id },
         data: updateData,
         include: {
@@ -393,28 +598,37 @@ export class EventService {
               name: true,
               city: true,
               address: true,
+              capacity: true,
+              status: true,
             },
           },
         },
       });
-      this.logger.log(`Event updated successfully: ${event.id}`);
-      return event;
+
+      this.logger.log(`Event updated successfully: ${id}`);
+      return updatedEvent;
     } catch (error) {
       this.logger.error(
         `Failed to update event: ${error.message}`,
         error.stack,
       );
-      throw new BadRequestException('Failed to update event');
+
+      if (error.code === 'P2025') {
+        throw new NotFoundException('Event not found');
+      }
+
+      if (error.code === 'P2002') {
+        throw new ConflictException('Event with this data already exists');
+      }
+
+      if (error.code === 'P2003') {
+        throw new BadRequestException('Invalid venue reference');
+      }
+
+      throw new BadRequestException(`Failed to update event: ${error.message}`);
     }
   }
 
-  /**
-   * Delete event by ID
-   * @param id - Event UUID
-   * @returns Success message
-   * @throws NotFoundException if event not found
-   * @throws BadRequestException if ID format is invalid
-   */
   async deleteEvent(id: string): Promise<{ message: string }> {
     this.logger.log(`Attempting to delete event: ${id}`);
 
@@ -459,10 +673,6 @@ export class EventService {
     }
   }
 
-  /**
-   * Get event statistics
-   * @returns Total events and breakdown by status
-   */
   async getEventStatistics() {
     this.logger.log('Fetching event statistics');
 
@@ -539,13 +749,6 @@ export class EventService {
     }
   }
 
-  /**
-   * Get events by venue ID
-   * @param venueId - Venue UUID
-   * @returns List of events for the specified venue
-   * @throws NotFoundException if venue not found
-   * @throws BadRequestException if ID format is invalid
-   */
   async getEventsByVenueId(venueId: string) {
     this.logger.log(`Fetching events for venue: ${venueId}`);
 
@@ -663,9 +866,9 @@ export class EventService {
             venueCity: venue?.city || 'Unknown',
             totalRevenue: Number(item._sum.finalPrice || 0),
             eventCount: item._count,
-          }
-        })
-      )
+          };
+        }),
+      );
 
       revenueByVenueEnriched.sort((a, b) => b.totalRevenue - a.totalRevenue);
 
@@ -752,9 +955,61 @@ export class EventService {
         formatted: {
           totalRevenue: PricingHelper.formatCurrency(totalRevenue),
           paidRevenue: PricingHelper.formatCurrency(paidRevenue),
-          unpaidRevenue: PricingHelper.formatCurrency(totalRevenue - paidRevenue),
+          unpaidRevenue: PricingHelper.formatCurrency(
+            totalRevenue - paidRevenue,
+          ),
         },
       },
     };
+  }
+
+  async checkVenueAvailability(
+    venueId: string,
+    startDatetime: Date,
+    endDatetime: Date,
+    excludeEventId?: string,
+  ): Promise<void> {
+    const overlappingEvents = await this.prisma.event.findMany({
+      where: {
+        venueId,
+        id: excludeEventId ? { not: excludeEventId } : undefined,
+        status: {
+          in: ['UPCOMING', 'ONGOING'],
+        },
+        OR: [
+          {
+            AND: [
+              { startDatetime: { lte: startDatetime } },
+              { endDatetime: { gt: startDatetime } },
+            ],
+          },
+          {
+            AND: [
+              { startDatetime: { lt: endDatetime } },
+              { endDatetime: { gte: endDatetime } },
+            ],
+          },
+          {
+            AND: [
+              { startDatetime: { gte: startDatetime } },
+              { endDatetime: { lte: endDatetime } },
+            ],
+          },
+        ],
+      },
+      select: {
+        id: true,
+        name: true,
+        startDatetime: true,
+        endDatetime: true,
+      },
+    });
+
+    if (overlappingEvents.length > 0) {
+      const conflictingEvent = overlappingEvents[0];
+      throw new ConflictException(
+        `Venue is already booked for event "${conflictingEvent.name}" from ${conflictingEvent.startDatetime.toLocaleString()} to ${conflictingEvent.endDatetime.toLocaleString()}. Please choose different date or venue.`,
+      );
+    }
   }
 }

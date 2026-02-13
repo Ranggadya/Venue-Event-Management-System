@@ -1,21 +1,27 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   CanActivate,
   ExecutionContext,
   Injectable,
-  UnauthorizedException,
   Logger,
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
+import type { Request, Response } from 'express';
 
+/**
+ * AuthGuard
+ * Protects routes that require authentication
+ * Redirects unauthenticated users to login page
+ */
 @Injectable()
 export class AuthGuard implements CanActivate {
   private readonly logger = new Logger(AuthGuard.name);
+  private readonly SESSION_MAX_AGE = 24 * 60 * 60 * 1000;
 
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<Request>();
+    const response = context.switchToHttp().getResponse<Response>();
     const session = request.session;
 
     const { method, url, ip } = request;
@@ -25,23 +31,44 @@ export class AuthGuard implements CanActivate {
       this.logger.warn(
         `Unauthorized access attempt: ${method} ${url} from IP: ${ip}`,
       );
-      throw new UnauthorizedException(
-        'You must be logged in to access this resource',
-      );
+
+      response.redirect('/auth/login');
+      return false;
     }
 
-    const sessionAge = Date.now() - (session.cookie.originalMaxAge || 0);
-    if (sessionAge > 24 * 60 * 60 * 1000) {
-      // 24 hours
+    // Check session expiry
+    const sessionCreatedAt = session.cookie?.expires
+      ? new Date(session.cookie.expires).getTime() -
+        (session.cookie.maxAge || this.SESSION_MAX_AGE)
+      : Date.now();
+
+    const sessionAge = Date.now() - sessionCreatedAt;
+
+    if (sessionAge > this.SESSION_MAX_AGE) {
       this.logger.warn(
-        `Expired session detected for admin: ${session.adminId}`,
+        `Expired session detected for admin: ${session.adminId} (age: ${Math.round(sessionAge / 1000 / 60)} minutes)`,
       );
-      throw new UnauthorizedException('Session expired. Please login again.');
+
+      return new Promise<boolean>((resolve) => {
+        request.session.destroy((err) => {
+          if (err) {
+            this.logger.error('Failed to destroy expired session:', err);
+          }
+
+          // Clear cookie
+          response.clearCookie('sessionId');
+
+          // Redirect to login
+          response.redirect('/auth/login');
+          resolve(false);
+        });
+      });
     }
 
-    this.logger.log(
+    this.logger.debug(
       `Authenticated request: ${method} ${url} by admin: ${session.adminId}`,
     );
+
     return true;
   }
 }

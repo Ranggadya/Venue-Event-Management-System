@@ -1,0 +1,421 @@
+<!-- Breadcrumb -->
+<nav class="breadcrumb mb-6">
+    <a href="/dashboard" class="breadcrumb-item">Dashboard</a>
+    <span class="breadcrumb-separator">/</span>
+    <a href="/events" class="breadcrumb-item">Events</a>
+    <span class="breadcrumb-separator">/</span>
+    <span class="text-slate-900 font-medium">
+        <%= event.name %>
+    </span>
+</nav>
+
+<!-- Page Header -->
+<div class="flex items-start justify-between mb-6">
+    <div>
+        <h1 class="text-2xl font-bold text-slate-900 mb-2">
+            <%= event.name %>
+        </h1>
+        <div class="flex items-center flex-wrap gap-4 text-sm text-slate-600">
+            <span class="flex items-center">
+                <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <%= new Date(event.startDatetime).toLocaleDateString('id-ID', { day: 'numeric' , month: 'long' ,
+                    year: 'numeric' }) %>
+            </span>
+            <span class="flex items-center">
+                <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <%= new Date(event.startDatetime).toLocaleTimeString('id-ID', { hour: '2-digit' , minute: '2-digit' })
+                    %> - <%= new Date(event.endDatetime).toLocaleTimeString('id-ID', { hour: '2-digit' ,
+                        minute: '2-digit' }) %>
+            </span>
+            <!-- 🆕 Attendee Count Badge -->
+            <% if (event.attendeeCount) { %>
+                <span class="flex items-center">
+                    <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    <%= event.attendeeCount %> attendees
+                </span>
+                <% } %>
+                    <span class="badge <%= 
+                event.status === 'UPCOMING' ? 'badge-info' :
+                event.status === 'ONGOING' ? 'badge-success' :
+                event.status === 'COMPLETED' ? 'bg-slate-100 text-slate-800' :
+                'badge-danger'
+            %>">
+                        <%= event.status %>
+                    </span>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center space-x-3">
+        <a href="/events/<%= event.id %>/edit" class="btn btn-outline btn-sm">
+            <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            Edit
+        </a>
+        <form method="POST" action="/events/<%= event.id %>/delete" class="inline-block"
+            onsubmit="return confirm('Are you sure you want to delete this event? This action cannot be undone.');">
+            <button type="submit" class="btn btn-danger btn-sm">
+                <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Delete
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Main Content Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+
+    <!-- Main Info -->
+    <div class="lg:col-span-2 space-y-6">
+
+        <!-- Event Information Card -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="text-lg font-semibold text-slate-900">Event Information</h3>
+            </div>
+            <div class="card-body space-y-4">
+
+                <!-- Description -->
+                <% if (event.description) { %>
+                    <div>
+                        <label class="text-sm font-medium text-slate-700">Description</label>
+                        <p class="mt-1 text-slate-600">
+                            <%= event.description %>
+                        </p>
+                    </div>
+                    <% } %>
+
+                        <!-- Date & Time Details -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-sm font-medium text-slate-700">Start Date & Time</label>
+                                <p class="mt-1 text-slate-900">
+                                    <%= new Date(event.startDatetime).toLocaleDateString('id-ID', { weekday: 'long' ,
+                                        day: 'numeric' , month: 'long' , year: 'numeric' }) %>
+                                </p>
+                                <p class="text-sm text-slate-600">
+                                    <%= new Date(event.startDatetime).toLocaleTimeString('id-ID', { hour: '2-digit' ,
+                                        minute: '2-digit' }) %>
+                                </p>
+                            </div>
+                            <div>
+                                <label class="text-sm font-medium text-slate-700">End Date & Time</label>
+                                <p class="mt-1 text-slate-900">
+                                    <%= new Date(event.endDatetime).toLocaleDateString('id-ID', { weekday: 'long' ,
+                                        day: 'numeric' , month: 'long' , year: 'numeric' }) %>
+                                </p>
+                                <p class="text-sm text-slate-600">
+                                    <%= new Date(event.endDatetime).toLocaleTimeString('id-ID', { hour: '2-digit' ,
+                                        minute: '2-digit' }) %>
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Duration & Attendee Count Grid -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <!-- Duration -->
+                            <div>
+                                <label class="text-sm font-medium text-slate-700">Duration</label>
+                                <% const durationMs=new Date(event.endDatetime) - new Date(event.startDatetime); const
+                                    hours=Math.floor(durationMs / (1000 * 60 * 60)); const
+                                    minutes=Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60)); %>
+                                    <p class="mt-1 text-2xl font-bold text-primary-600">
+                                        <%= hours %> hours <% if (minutes> 0) { %><%= minutes %> minutes<% } %>
+                                    </p>
+                                    <% if (event.rentalType) { %>
+                                        <p class="text-sm text-slate-600 mt-1">Rental Type: <span
+                                                class="badge badge-info">
+                                                <%= event.rentalType %>
+                                            </span></p>
+                                        <% } %>
+                            </div>
+
+                            <!-- 🆕 Attendee Count -->
+                            <div>
+                                <label class="text-sm font-medium text-slate-700">Expected Attendees</label>
+                                <% if (event.attendeeCount) { %>
+                                    <p class="mt-1 text-2xl font-bold text-slate-900">
+                                        <%= event.attendeeCount %>
+                                    </p>
+                                    <% if (event.venue && event.venue.capacity) { %>
+                                        <% const utilizationPercent=(event.attendeeCount / event.venue.capacity *
+                                            100).toFixed(0); const isNearCapacity=utilizationPercent> 90;
+                                            const isOverCapacity = event.attendeeCount > event.venue.capacity;
+                                            %>
+                                            <div class="mt-2">
+                                                <div class="flex items-center justify-between text-xs mb-1">
+                                                    <span class="text-slate-600">Capacity Utilization</span>
+                                                    <span
+                                                        class="font-medium <%= isOverCapacity ? 'text-red-600' : isNearCapacity ? 'text-amber-600' : 'text-emerald-600' %>">
+                                                        <%= utilizationPercent %>%
+                                                    </span>
+                                                </div>
+                                                <div class="h-2 bg-slate-200 rounded-full overflow-hidden">
+                                                    <div class="h-full <%= isOverCapacity ? 'bg-red-500' : isNearCapacity ? 'bg-amber-500' : 'bg-emerald-500' %> rounded-full transition-all"
+                                                        style="width: <%= Math.min(utilizationPercent, 100) %>%"></div>
+                                                </div>
+                                                <p class="text-xs text-slate-500 mt-1">
+                                                    <% if (isOverCapacity) { %>
+                                                        ⚠️ Exceeds venue capacity (<%= event.venue.capacity %> max)
+                                                            <% } else if (isNearCapacity) { %>
+                                                                ⚠️ Near capacity (<%= event.venue.capacity %> max)
+                                                                    <% } else { %>
+                                                                        ✓ Within capacity (<%= event.venue.capacity %>
+                                                                            max)
+                                                                            <% } %>
+                                                </p>
+                                            </div>
+                                            <% } %>
+                                                <% } else { %>
+                                                    <p class="mt-1 text-slate-400">Not specified</p>
+                                                    <% } %>
+                            </div>
+                        </div>
+
+                        <!-- Status -->
+                        <div>
+                            <label class="text-sm font-medium text-slate-700">Status</label>
+                            <p class="mt-1">
+                                <span class="badge <%= 
+                            event.status === 'UPCOMING' ? 'badge-info' :
+                            event.status === 'ONGOING' ? 'badge-success' :
+                            event.status === 'COMPLETED' ? 'bg-slate-100 text-slate-800' :
+                            'badge-danger'
+                        %>">
+                                    <%= event.status %>
+                                </span>
+                            </p>
+                        </div>
+
+            </div>
+        </div>
+
+        <!-- Venue Information Card -->
+        <% if (event.venue) { %>
+            <div class="card">
+                <div class="card-header flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-slate-900">Venue Information</h3>
+                    <a href="/venues/<%= event.venue.id %>" class="btn btn-outline btn-sm">
+                        View Venue
+                        <svg class="h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </a>
+                </div>
+                <div class="card-body space-y-3">
+                    <div class="flex items-start">
+                        <div class="h-12 w-12 bg-primary-100 rounded-lg flex items-center justify-center mr-4">
+                            <svg class="h-6 w-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-slate-900 text-lg">
+                                <%= event.venue.name %>
+                            </h4>
+                            <p class="text-sm text-slate-600 mt-1">
+                                <svg class="h-4 w-4 inline-block mr-1" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                                <%= event.venue.address %>, <%= event.venue.city %>
+                            </p>
+                            <% if (event.venue.capacity) { %>
+                                <p class="text-sm text-slate-600 mt-1">
+                                    <svg class="h-4 w-4 inline-block mr-1" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                    </svg>
+                                    Capacity: <span class="font-medium">
+                                        <%= event.venue.capacity %>
+                                    </span> people
+                                </p>
+                                <% } %>
+                                    <% if (event.venue.status) { %>
+                                        <p class="text-sm text-slate-600 mt-1">
+                                            Status: <span class="badge <%= 
+                                    event.venue.status === 'AVAILABLE' ? 'badge-success' :
+                                    event.venue.status === 'BOOKED' ? 'badge-warning' :
+                                    'badge-danger'
+                                %>">
+                                                <%= event.venue.status %>
+                                            </span>
+                                        </p>
+                                        <% } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <% } %>
+
+    </div>
+
+    <!-- Sidebar: Pricing & Payment -->
+    <div class="space-y-6">
+
+        <!-- Pricing Breakdown Card -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="text-lg font-semibold text-slate-900">Pricing Details</h3>
+            </div>
+            <div class="card-body space-y-3">
+
+                <!-- Base Price -->
+                <% if (event.basePrice) { %>
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-slate-600">Base Price</span>
+                        <span class="text-sm font-medium text-slate-900">
+                            <%= new Intl.NumberFormat('id-ID', { style: 'currency' , currency: 'IDR' ,
+                                minimumFractionDigits: 0 }).format(event.basePrice) %>
+                        </span>
+                    </div>
+                    <% } %>
+
+                        <!-- Discount -->
+                        <% if (event.discount && event.discount> 0) { %>
+                            <div class="flex items-center justify-between text-emerald-600">
+                                <span class="text-sm">Discount (<%= event.discount %>%)</span>
+                                <span class="text-sm font-medium">
+                                    - <%= new Intl.NumberFormat('id-ID', { style: 'currency' , currency: 'IDR' ,
+                                        minimumFractionDigits: 0 }).format(event.basePrice * event.discount / 100) %>
+                                </span>
+                            </div>
+                            <% } %>
+
+                                <!-- Additional Fees -->
+                                <% if (event.additionalFees && event.additionalFees> 0) { %>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-slate-600">Additional Fees</span>
+                                        <span class="text-sm font-medium text-slate-900">
+                                            <%= new Intl.NumberFormat('id-ID', { style: 'currency' , currency: 'IDR' ,
+                                                minimumFractionDigits: 0 }).format(event.additionalFees) %>
+                                        </span>
+                                    </div>
+                                    <% } %>
+
+                                        <div class="border-t border-slate-200 pt-3 mt-3">
+                                            <div class="flex items-center justify-between">
+                                                <span class="text-base font-semibold text-slate-900">Total Price</span>
+                                                <span class="text-2xl font-bold text-primary-600">
+                                                    <%= new Intl.NumberFormat('id-ID', { style: 'currency' ,
+                                                        currency: 'IDR' , minimumFractionDigits: 0
+                                                        }).format(event.finalPrice) %>
+                                                </span>
+                                            </div>
+                                        </div>
+
+            </div>
+        </div>
+
+        <!-- Payment Status Card -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="text-lg font-semibold text-slate-900">Payment Status</h3>
+            </div>
+            <div class="card-body">
+
+                <div class="text-center py-4">
+                    <% if (event.isPaid) { %>
+                        <div class="inline-flex items-center justify-center h-16 w-16 rounded-full bg-emerald-100 mb-3">
+                            <svg class="h-8 w-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <p class="text-lg font-semibold text-emerald-600">PAID</p>
+                        <% if (event.paymentDate) { %>
+                            <p class="text-xs text-slate-500 mt-1">
+                                Paid on <%= new Date(event.paymentDate).toLocaleDateString('id-ID', { day: 'numeric' ,
+                                    month: 'long' , year: 'numeric' }) %>
+                            </p>
+                            <% } %>
+                                <% } else { %>
+                                    <div
+                                        class="inline-flex items-center justify-center h-16 w-16 rounded-full bg-amber-100 mb-3">
+                                        <svg class="h-8 w-8 text-amber-600" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </div>
+                                    <p class="text-lg font-semibold text-amber-600">UNPAID</p>
+                                    <p class="text-xs text-slate-500 mt-1">Payment pending</p>
+
+                                    <!-- Mark as Paid Button -->
+                                    <form method="POST" action="/events/<%= event.id %>/toggle-payment" class="mt-4">
+                                        <button type="submit" class="btn btn-success w-full">
+                                            <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            Mark as Paid
+                                        </button>
+                                    </form>
+                                    <% } %>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Timestamps Card -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="text-sm font-semibold text-slate-900">Event History</h3>
+            </div>
+            <div class="card-body text-xs text-slate-500 space-y-2">
+                <div class="flex items-center justify-between">
+                    <span>Created:</span>
+                    <span class="font-medium text-slate-700">
+                        <%= new Date(event.createdAt).toLocaleString('id-ID', { day: 'numeric' , month: 'short' ,
+                            year: 'numeric' , hour: '2-digit' , minute: '2-digit' }) %>
+                    </span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span>Last Updated:</span>
+                    <span class="font-medium text-slate-700">
+                        <%= new Date(event.updatedAt).toLocaleString('id-ID', { day: 'numeric' , month: 'short' ,
+                            year: 'numeric' , hour: '2-digit' , minute: '2-digit' }) %>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Back to List Button -->
+<div class="flex items-center justify-between">
+    <a href="/events" class="btn btn-secondary">
+        <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Back to Events
+    </a>
+
+    <div class="flex items-center space-x-3">
+        <a href="/events/<%= event.id %>/edit" class="btn btn-outline">
+            Edit Event
+        </a>
+    </div>
+</div>

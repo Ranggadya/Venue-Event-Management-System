@@ -78,9 +78,9 @@ export class CreateVenueDto {
   @Transform(({ value }) => value?.toUpperCase() || 'IDR')
   currency?: string;
 
-  @IsOptional()
   @IsEnum(VenueStatus, {
-    message: 'Status must be one of: AVAILABLE, BOOKED, MAINTENANCE, INACTIVE',
+    message: 'Status must be ACTIVE, MAINTENANCE, or INACTIVE',
   })
+  @IsOptional()
   status?: VenueStatus;
 }

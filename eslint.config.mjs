@@ -6,7 +6,9 @@ import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   {
-    ignores: ['eslint.config.mjs'],
+    ignores: ['eslint.config.mjs', 'tailwind.config.js',
+    'postcss.config.js','views/**/*.ejs'],
+    
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
@@ -19,7 +21,7 @@ export default tseslint.config(
       },
       sourceType: 'commonjs',
       parserOptions: {
-        projectService: true,
+        project: true,
         tsconfigRootDir: import.meta.dirname,
       },
     },

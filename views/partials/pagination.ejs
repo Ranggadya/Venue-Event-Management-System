@@ -1,0 +1,131 @@
+<% if (meta && meta.totalPages > 1) { %>
+    <nav class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 rounded-lg shadow-sm mt-6">
+        
+        <!-- Mobile View -->
+        <div class="flex flex-1 justify-between sm:hidden">
+            <% if (meta.page > 1) { %>
+                <a href="?page=<%= meta.page - 1 %><%= query ? '&' + new URLSearchParams(query).toString() : '' %>" 
+                   class="relative inline-flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    Previous
+                </a>
+            <% } else { %>
+                <span class="relative inline-flex items-center rounded-lg border border-gray-300 bg-gray-100 px-4 py-2 text-sm font-medium text-gray-400 cursor-not-allowed">
+                    Previous
+                </span>
+            <% } %>
+            
+            <% if (meta.page < meta.totalPages) { %>
+                <a href="?page=<%= meta.page + 1 %><%= query ? '&' + new URLSearchParams(query).toString() : '' %>" 
+                   class="relative ml-3 inline-flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    Next
+                </a>
+            <% } else { %>
+                <span class="relative ml-3 inline-flex items-center rounded-lg border border-gray-300 bg-gray-100 px-4 py-2 text-sm font-medium text-gray-400 cursor-not-allowed">
+                    Next
+                </span>
+            <% } %>
+        </div>
+        
+        <!-- Desktop View -->
+        <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+            <div>
+                <p class="text-sm text-gray-700">
+                    Showing page
+                    <span class="font-medium"><%= meta.page %></span>
+                    of
+                    <span class="font-medium"><%= meta.totalPages %></span>
+                    (<span class="font-medium"><%= meta.total %></span> total items)
+                </p>
+            </div>
+            
+            <div>
+                <nav class="isolate inline-flex -space-x-px rounded-lg shadow-sm" aria-label="Pagination">
+                    
+                    <!-- Previous Button -->
+                    <% if (meta.page > 1) { %>
+                        <a href="?page=<%= meta.page - 1 %><%= query ? '&' + new URLSearchParams(query).toString() : '' %>" 
+                           class="relative inline-flex items-center rounded-l-lg px-2 py-2 text-gray-500 hover:bg-gray-50 focus:z-20">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                            </svg>
+                        </a>
+                    <% } else { %>
+                        <span class="relative inline-flex items-center rounded-l-lg px-2 py-2 text-gray-300 cursor-not-allowed">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                            </svg>
+                        </span>
+                    <% } %>
+                    
+                    <!-- Page Numbers -->
+                    <% 
+                        const maxPages = 5;
+                        let startPage = Math.max(1, meta.page - Math.floor(maxPages / 2));
+                        let endPage = Math.min(meta.totalPages, startPage + maxPages - 1);
+                        
+                        if (endPage - startPage < maxPages - 1) {
+                            startPage = Math.max(1, endPage - maxPages + 1);
+                        }
+                    %>
+                    
+                    <!-- First page + ellipsis -->
+                    <% if (startPage > 1) { %>
+                        <a href="?page=1<%= query ? '&' + new URLSearchParams(query).toString() : '' %>" 
+                           class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:z-20">
+                            1
+                        </a>
+                        <% if (startPage > 2) { %>
+                            <span class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700">
+                                ...
+                            </span>
+                        <% } %>
+                    <% } %>
+                    
+                    <!-- Page number buttons -->
+                    <% for (let i = startPage; i <= endPage; i++) { %>
+                        <% if (i === meta.page) { %>
+                            <span class="relative z-10 inline-flex items-center bg-primary-500 px-4 py-2 text-sm font-semibold text-white focus:z-20">
+                                <%= i %>
+                            </span>
+                        <% } else { %>
+                            <a href="?page=<%= i %><%= query ? '&' + new URLSearchParams(query).toString() : '' %>" 
+                               class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:z-20">
+                                <%= i %>
+                            </a>
+                        <% } %>
+                    <% } %>
+                    
+                    <!-- Ellipsis + last page -->
+                    <% if (endPage < meta.totalPages) { %>
+                        <% if (endPage < meta.totalPages - 1) { %>
+                            <span class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700">
+                                ...
+                            </span>
+                        <% } %>
+                        <a href="?page=<%= meta.totalPages %><%= query ? '&' + new URLSearchParams(query).toString() : '' %>" 
+                           class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:z-20">
+                            <%= meta.totalPages %>
+                        </a>
+                    <% } %>
+                    
+                    <!-- Next Button -->
+                    <% if (meta.page < meta.totalPages) { %>
+                        <a href="?page=<%= meta.page + 1 %><%= query ? '&' + new URLSearchParams(query).toString() : '' %>" 
+                           class="relative inline-flex items-center rounded-r-lg px-2 py-2 text-gray-500 hover:bg-gray-50 focus:z-20">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </a>
+                    <% } else { %>
+                        <span class="relative inline-flex items-center rounded-r-lg px-2 py-2 text-gray-300 cursor-not-allowed">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </span>
+                    <% } %>
+                    
+                </nav>
+            </div>
+        </div>
+    </nav>
+<% } %>

@@ -30,12 +30,18 @@ export class HttpExceptionFilter implements ExceptionFilter {
         ? exceptionResponse
         : (exceptionResponse as any).message || exception.message;
 
-    // Log error
-    this.logger.error(
-      `[${request.method}] ${request.url} - Status: ${status} - Message: ${
-        Array.isArray(message) ? message.join(', ') : message
-      }`,
-    );
+    // Skip logging for common browser noise
+    const silentPaths = ['/favicon.ico', '/robots.txt'];
+    const isNoise =
+      silentPaths.includes(request.url) || request.url.startsWith('/.well-known');
+
+    // Log error if not noise
+    if (!isNoise) {
+      this.logger.error(
+        `[${request.method}] ${request.url} - Status: ${status} - Message: ${Array.isArray(message) ? message.join(', ') : message
+        }`,
+      );
+    }
 
     // Send formatted error response
     response.status(status).json({

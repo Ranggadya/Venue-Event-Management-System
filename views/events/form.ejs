@@ -1,0 +1,471 @@
+<!-- Breadcrumb -->
+<nav class="breadcrumb mb-6">
+    <a href="/dashboard" class="breadcrumb-item">Dashboard</a>
+    <span class="breadcrumb-separator">/</span>
+    <a href="/events" class="breadcrumb-item">Events</a>
+    <span class="breadcrumb-separator">/</span>
+    <span class="text-slate-900 font-medium">
+        <%= event ? 'Edit' : 'Create' %>
+    </span>
+</nav>
+
+<!-- Page Header -->
+<div class="mb-6">
+    <h1 class="text-2xl font-bold text-slate-900">
+        <%= event ? 'Edit Event' : 'Create New Event' %>
+    </h1>
+    <p class="text-slate-600 mt-1">
+        <%= event ? 'Update event information and booking details' : 'Schedule a new event at a venue' %>
+    </p>
+</div>
+
+<!-- Error Alert -->
+<% if (typeof error !=='undefined' && error) { %>
+    <div class="alert-error mb-6">
+        <div class="flex items-start">
+            <svg class="h-5 w-5 text-red-500 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div class="flex-1">
+                <h3 class="text-sm font-medium text-red-800">Error</h3>
+                <p class="text-sm text-red-700 mt-1">
+                    <%= error %>
+                </p>
+            </div>
+        </div>
+    </div>
+    <% } %>
+
+        <!-- Form -->
+        <form method="POST" action="<%= action %>" class="space-y-6" x-data="eventForm()">
+
+            <!-- Basic Information Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-lg font-semibold text-slate-900">Event Details</h3>
+                    <p class="text-sm text-slate-600 mt-1">Enter the event's basic information</p>
+                </div>
+                <div class="card-body space-y-4">
+
+                    <!-- Event Name -->
+                    <div>
+                        <label for="name" class="form-label required">
+                            Event Name
+                        </label>
+                        <input type="text" id="name" name="name" value="<%= event ? event.name : '' %>"
+                            class="form-input" placeholder="e.g., Wedding Reception - Budi & Ani" required
+                            maxlength="255">
+                        <p class="text-xs text-slate-500 mt-1">Maximum 255 characters</p>
+                    </div>
+
+                    <!-- Description -->
+                    <div>
+                        <label for="description" class="form-label">
+                            Description
+                        </label>
+                        <textarea id="description" name="description" rows="4" class="form-textarea"
+                            placeholder="Describe the event, theme, special requirements..."><%= event && event.description ? event.description : '' %></textarea>
+                        <p class="text-xs text-slate-500 mt-1">Optional: Provide details about the event</p>
+                    </div>
+
+                    <!-- Venue Selection & Attendee Count (Grid) -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                        <!-- Venue Selection -->
+                        <div>
+                            <label for="venueId" class="form-label required">
+                                Select Venue
+                            </label>
+                            <select id="venueId" name="venueId" class="form-select" required x-model="venueId"
+                                @change="updateVenueCapacity()">
+                                <option value="">-- Select a venue --</option>
+                                <% if (venues && venues.length> 0) { %>
+                                    <% venues.forEach(venue=> { %>
+                                        <option value="<%= venue.id %>" data-capacity="<%= venue.capacity %>"
+                                            data-status="<%= venue.status %>" <%=event && event.venueId===venue.id
+                                            ? 'selected' : '' %>
+                                            <%= selectedVenueId && selectedVenueId===venue.id ? 'selected' : '' %>
+                                                <%= venue.status !=='ACTIVE' ? 'disabled' : '' %>
+                                                    >
+                                                    <%= venue.name %> - <%= venue.city %> (Cap: <%= venue.capacity %>)
+                                                                <%= venue.status==='MAINTENANCE'
+                                                                    ? ' [UNDER MAINTENANCE]' : '' %>
+                                                                    <%= venue.status==='INACTIVE' ? ' [INACTIVE]' : ''
+                                                                        %>
+                                        </option>
+                                        <% }); %>
+                                            <% } else { %>
+                                                <option value="" disabled>No active venues available</option>
+                                                <% } %>
+                            </select>
+                            <p class="text-xs text-slate-500 mt-1">
+                                Only ACTIVE venues are available for booking
+                            </p>
+                        </div>
+                        <!-- Attendee Count -->
+                        <div>
+                            <label for="attendeeCount" class="form-label">
+                                Expected Attendees
+                            </label>
+                            <div class="relative">
+                                <input type="number" id="attendeeCount" name="attendeeCount"
+                                    value="<%= event && event.attendeeCount ? event.attendeeCount : '' %>"
+                                    class="form-input pl-10" placeholder="e.g., 250" min="1" x-model="attendeeCount"
+                                    @input="validateCapacity()">
+                                <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-1" x-show="!capacityWarning">Number of people expected
+                            </p>
+                            <!-- 🆕 Capacity Warning -->
+                            <p class="text-xs text-amber-600 mt-1 flex items-center" x-show="capacityWarning"
+                                x-text="capacityWarning" style="display: none;"></p>
+                            <p class="text-xs text-emerald-600 mt-1 flex items-center"
+                                x-show="venueCapacity && attendeeCount && attendeeCount <= venueCapacity && !capacityWarning"
+                                style="display: none;">
+                                <svg class="h-3 w-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd"
+                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                                <span x-text="'Within capacity (' + venueCapacity + ' max)'"></span>
+                            </p>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Date & Time Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-lg font-semibold text-slate-900">Schedule</h3>
+                    <p class="text-sm text-slate-600 mt-1">Set the event date and time</p>
+                </div>
+                <div class="card-body space-y-4">
+
+                    <!-- Start Date & Time -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="startDate" class="form-label required">
+                                Start Date
+                            </label>
+                            <input type="date" id="startDate" name="startDate"
+                                value="<%= event && event.startDatetime ? new Date(event.startDatetime).toISOString().split('T')[0] : '' %>"
+                                class="form-input" required x-model="startDate"
+                                @change="calculateDuration(); validateDates()" :min="minDate">
+                        </div>
+
+                        <div>
+                            <label for="startTime" class="form-label required">
+                                Start Time
+                            </label>
+                            <input type="time" id="startTime" name="startTime"
+                                value="<%= event && event.startDatetime ? new Date(event.startDatetime).toTimeString().substring(0, 5) : '' %>"
+                                class="form-input" required x-model="startTime"
+                                @change="calculateDuration(); validateDates()">
+                        </div>
+                    </div>
+
+                    <!-- End Date & Time -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="endDate" class="form-label required">
+                                End Date
+                            </label>
+                            <input type="date" id="endDate" name="endDate"
+                                value="<%= event && event.endDatetime ? new Date(event.endDatetime).toISOString().split('T')[0] : '' %>"
+                                class="form-input" required x-model="endDate"
+                                @change="calculateDuration(); validateDates()" :min="startDate || minDate">
+                        </div>
+
+                        <div>
+                            <label for="endTime" class="form-label required">
+                                End Time
+                            </label>
+                            <input type="time" id="endTime" name="endTime"
+                                value="<%= event && event.endDatetime ? new Date(event.endDatetime).toTimeString().substring(0, 5) : '' %>"
+                                class="form-input" required x-model="endTime"
+                                @change="calculateDuration(); validateDates()">
+                        </div>
+                    </div>
+
+                    <!-- 🆕 Date Validation Warning -->
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-4" x-show="dateError"
+                        style="display: none;">
+                        <div class="flex items-start">
+                            <svg class="h-5 w-5 text-red-500 mr-3 flex-shrink-0" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <div>
+                                <p class="text-sm font-medium text-red-800">Date Validation Error</p>
+                                <p class="text-sm text-red-700 mt-1" x-text="dateError"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Duration Display -->
+                    <div class="bg-sky-50 border border-sky-200 rounded-lg p-4" x-show="duration && !dateError"
+                        style="display: none;">
+                        <div class="flex items-center">
+                            <svg class="h-5 w-5 text-sky-500 mr-3" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <div>
+                                <p class="text-sm font-medium text-sky-900">Event Duration</p>
+                                <p class="text-2xl font-bold text-sky-600 mt-1" x-text="durationText"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Pricing & Status Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-lg font-semibold text-slate-900">Pricing & Payment</h3>
+                    <p class="text-sm text-slate-600 mt-1">Configure pricing details</p>
+                </div>
+                <div class="card-body space-y-4">
+
+                    <!-- Pricing Note -->
+                    <div class="bg-primary-50 border border-primary-200 rounded-lg p-4">
+                        <div class="flex items-start">
+                            <svg class="h-5 w-5 text-primary-500 mr-3 flex-shrink-0 mt-0.5" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <div class="text-sm text-primary-800">
+                                <p class="font-medium">Automatic Pricing</p>
+                                <p class="mt-1 text-primary-700">Base price will be calculated automatically based on
+                                    venue rates and event duration. You can add discount and additional fees below.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Discount & Additional Fees -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                        <!-- Discount -->
+                        <div>
+                            <label for="discount" class="form-label">
+                                Discount (%)
+                            </label>
+                            <div class="relative">
+                                <input type="number" id="discount" name="discount"
+                                    value="<%= event && event.discount ? event.discount : '0' %>"
+                                    class="form-input pr-8" placeholder="0" min="0" max="100" step="0.01">
+                                <div
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium text-slate-500">
+                                    %</div>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-1">Percentage discount (0-100)</p>
+                        </div>
+
+                        <!-- Additional Fees -->
+                        <div>
+                            <label for="additionalFees" class="form-label">
+                                Additional Fees
+                            </label>
+                            <div class="relative">
+                                <div
+                                    class="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-slate-500">
+                                    Rp</div>
+                                <input type="number" id="additionalFees" name="additionalFees"
+                                    value="<%= event && event.additionalFees ? event.additionalFees : '0' %>"
+                                    class="form-input pl-12" placeholder="0" min="0" step="1000">
+                            </div>
+                            <p class="text-xs text-slate-500 mt-1">Extra charges (e.g., catering, equipment)</p>
+                        </div>
+
+                    </div>
+
+                    <!-- Payment Status & Event Status -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                        <!-- Payment Status -->
+                        <div>
+                            <label class="form-label">Payment Status</label>
+                            <div class="flex items-center space-x-4 mt-2">
+                                <label class="flex items-center">
+                                    <input type="radio" name="isPaid" value="false" <%=!event || !event.isPaid
+                                        ? 'checked' : '' %>
+                                    class="form-checkbox h-4 w-4"
+                                    >
+                                    <span class="ml-2 text-sm text-slate-700">Unpaid</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="isPaid" value="true" <%=event && event.isPaid ? 'checked'
+                                        : '' %>
+                                    class="form-checkbox h-4 w-4"
+                                    >
+                                    <span class="ml-2 text-sm text-slate-700">Paid</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Event Status -->
+                        <div>
+                            <label for="status" class="form-label">
+                                Event Status
+                            </label>
+                            <select id="status" name="status" class="form-select">
+                                <option value="UPCOMING" <%=!event || event.status==='UPCOMING' ? 'selected' : '' %>
+                                    >Upcoming</option>
+                                <option value="ONGOING" <%=event && event.status==='ONGOING' ? 'selected' : '' %>
+                                    >Ongoing</option>
+                                <option value="COMPLETED" <%=event && event.status==='COMPLETED' ? 'selected' : '' %>
+                                    >Completed</option>
+                                <option value="CANCELLED" <%=event && event.status==='CANCELLED' ? 'selected' : '' %>
+                                    >Cancelled</option>
+                            </select>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="flex items-center justify-between">
+                <a href="<%= event ? '/events/' + event.id : '/events' %>" class="btn btn-secondary">
+                    <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Cancel
+                </a>
+
+                <button type="submit" class="btn btn-primary"
+                    :disabled="dateError || (capacityWarning && capacityWarning.includes('exceeds'))">
+                    <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <%= event ? 'Update Event' : 'Create Event' %>
+                </button>
+            </div>
+
+        </form>
+
+        <!-- Alpine.js Component -->
+        <script>
+            function eventForm() {
+                return {
+                    isEditMode: '<%= event ? "true" : "false" %>' === 'true',
+                    venueId: '<%= event && event.venueId ? event.venueId : (typeof selectedVenueId !== "undefined" ? selectedVenueId : "") %>',
+                    venueCapacity: Number('<%= event && event.venue ? event.venue.capacity : 0 %>'),
+                    attendeeCount: '<%= event && event.attendeeCount ? event.attendeeCount : "" %>',
+                    capacityWarning: '',
+                    startDate: '<%= event && event.startDatetime ? new Date(event.startDatetime).toISOString().split("T")[0] : "" %>',
+                    startTime: '<%= event && event.startDatetime ? new Date(event.startDatetime).toTimeString().substring(0, 5) : "" %>',
+                    endDate: '<%= event && event.endDatetime ? new Date(event.endDatetime).toISOString().split("T")[0] : "" %>',
+                    endTime: '<%= event && event.endDatetime ? new Date(event.endDatetime).toTimeString().substring(0, 5) : "" %>',
+                    duration: 0,
+                    durationText: '',
+                    dateError: '',
+                    minDate: new Date().toISOString().split('T')[0],
+
+                    init() {
+                        this.calculateDuration();
+                        // Force update capacity from DOM if venueId is set to ensure sync
+                        if (this.venueId) {
+                            // Small delay to ensure DOM is ready if needed, though usually fine here
+                            setTimeout(() => this.updateVenueCapacity(), 50);
+                        } else {
+                            this.validateCapacity();
+                        }
+                        this.validateDates();
+                    },
+
+                    updateVenueCapacity() {
+                        const select = document.getElementById('venueId');
+                        if (!select) return;
+                        const selectedOption = select.options[select.selectedIndex];
+                        if (selectedOption) {
+                            this.venueCapacity = parseInt(selectedOption.dataset.capacity) || 0;
+                        }
+                        this.validateCapacity();
+                    },
+
+                    validateCapacity() {
+                        this.capacityWarning = '';
+
+                        if (!this.venueId || !this.attendeeCount || this.attendeeCount <= 0) {
+                            return;
+                        }
+
+                        const attendees = parseInt(this.attendeeCount);
+
+                        if (attendees > this.venueCapacity) {
+                            this.capacityWarning = `⚠️ Exceeds venue capacity (${this.venueCapacity} max). Please reduce attendees or choose larger venue.`;
+                        } else if (attendees > this.venueCapacity * 0.9) {
+                            this.capacityWarning = `⚠️ Near capacity limit (${this.venueCapacity} max). Consider buffer space.`;
+                        }
+                    },
+
+                    validateDates() {
+                        this.dateError = '';
+
+                        if (!this.startDate || !this.startTime) {
+                            return;
+                        }
+
+                        const start = new Date(`${this.startDate}T${this.startTime}`);
+                        const now = new Date();
+
+                        // Check if start date is in the past (only for new events)
+                        if (!this.isEditMode && start < now) {
+                            this.dateError = 'Start date and time cannot be in the past. Please select a future date.';
+                            return;
+                        }
+
+                        // Check if end is after start
+                        if (this.endDate && this.endTime) {
+                            const end = new Date(`${this.endDate}T${this.endTime}`);
+
+                            if (end <= start) {
+                                this.dateError = 'End date/time must be after start date/time.';
+                                return;
+                            }
+                        }
+                    },
+
+                    calculateDuration() {
+                        if (this.startDate && this.startTime && this.endDate && this.endTime) {
+                            const start = new Date(`${this.startDate}T${this.startTime}`);
+                            const end = new Date(`${this.endDate}T${this.endTime}`);
+
+                            if (end > start) {
+                                const diffMs = end - start;
+                                const hours = Math.floor(diffMs / (1000 * 60 * 60));
+                                const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+                                this.duration = hours + (minutes / 60);
+                                this.durationText = `${hours} hours ${minutes > 0 ? minutes + ' minutes' : ''}`;
+                            } else {
+                                this.duration = 0;
+                                this.durationText = '';
+                            }
+                        }
+                    }
+                }
+            }
+        </script>
+
+        <style>
+            .form-label.required::after {
+                content: ' *';
+                color: #ef4444;
+            }
+        </style>

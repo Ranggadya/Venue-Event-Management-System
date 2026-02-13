@@ -27,9 +27,7 @@ export class VenueListResponseDto {
   };
 }
 
-/**
- * API Response wrapper
- */
+// API Response wrapper
 export class ApiResponseDto<T> {
   message: string;
   data: T;

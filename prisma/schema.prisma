@@ -41,7 +41,7 @@ model Venue {
   pricePerHour Decimal?    @map("price_per_hour") @db.Decimal(10, 2)
   pricePerDay  Decimal?    @map("price_per_day") @db.Decimal(10, 2)
   currency     String      @default("IDR") @db.Char(3)
-  status       VenueStatus @default(AVAILABLE)
+  status          VenueStatus   @default(ACTIVE)
   createdAt    DateTime    @default(now()) @map("created_at")
   updatedAt    DateTime    @updatedAt @map("updated_at")
 
@@ -66,6 +66,7 @@ model Event {
   createdAt       DateTime    @default(now()) @map("created_at")
   updatedAt       DateTime    @updatedAt @map("updated_at")
 
+  attendeeCount   Int?
   rentalType      RentalType  @default(HOURLY) @map("rental_type")
   basePrice       Decimal?    @map("base_price") @db.Decimal(10, 2) // Auto-calculated
   discount        Decimal?    @default(0) @db.Decimal(5, 2) // Percentage (0-100)
@@ -91,10 +92,9 @@ enum RentalType {
 }
 
 enum VenueStatus {
-  AVAILABLE
-  BOOKED
-  MAINTENANCE
-  INACTIVE
+  ACTIVE        // Normal operation
+  MAINTENANCE   // Under renovation/repair
+  INACTIVE      // No longer in use
 }
 
 enum EventStatus {

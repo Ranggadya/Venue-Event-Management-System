@@ -7,9 +7,6 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('🌱 Starting seeding...');
 
-  // ==========================================
-  // 1. SEED ADMIN
-  // ==========================================
   console.log('👤 Seeding Admin...');
 
   const hashedPassword = await bcrypt.hash('admin123', 10);
@@ -27,9 +24,6 @@ async function main() {
 
   console.log('✅ Admin created:', admin.email);
 
-  // ==========================================
-  // 2. SEED VENUES
-  // ==========================================
   console.log('🏢 Seeding Venues...');
 
   const venues = await Promise.all([
@@ -44,7 +38,7 @@ async function main() {
         pricePerHour: 2000000,
         pricePerDay: 15000000,
         currency: 'IDR',
-        status: VenueStatus.AVAILABLE,
+        status: VenueStatus.ACTIVE,
       },
     }),
     prisma.venue.create({
@@ -58,7 +52,7 @@ async function main() {
         pricePerHour: 2500000,
         pricePerDay: 20000000,
         currency: 'IDR',
-        status: VenueStatus.AVAILABLE,
+        status: VenueStatus.ACTIVE,
       },
     }),
     prisma.venue.create({
@@ -72,7 +66,7 @@ async function main() {
         pricePerHour: 3000000,
         pricePerDay: 25000000,
         currency: 'IDR',
-        status: VenueStatus.BOOKED,
+        status: VenueStatus.ACTIVE,
       },
     }),
     prisma.venue.create({
