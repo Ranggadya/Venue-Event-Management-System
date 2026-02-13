@@ -57,6 +57,18 @@ Shows all registered venues including status and pricing configuration.
 
 ![Venue List](screenshots/venue-list.png)
 
+### ➕ Venue Form
+
+Form interface for creating or updating venue data including pricing and operational status.
+
+![Venue Form](screenshots/venue-form.png)
+
+### 📊 Venue Statistics
+
+Displays venue-based analytics such as total events per venue and revenue contribution.
+
+![Venue Statistics](screenshots/venue-statistics.png)
+
 ---
 
 ### 📅 Event List
@@ -80,6 +92,12 @@ Form interface for scheduling events with datetime validation and pricing calcul
 Detailed view showing financial breakdown, rental type, discount, and payment status.
 
 ![Event Detail](screenshots/event-detail.png)
+
+### 📊 Event Statistics
+
+Shows aggregated event data including upcoming, ongoing, completed events, and total revenue.
+
+![Event Statistics](screenshots/event-statistics.png)
 
 ---
 
