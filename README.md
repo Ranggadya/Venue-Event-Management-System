@@ -247,9 +247,14 @@ Development Tools
 
 ## Installation
 
-1. Clone repository
+## 🚀 Getting Started
 
-git clone <your-repo-url>  
+Follow the steps below to run this project locally.
+
+### 1️⃣ Clone the Repository
+
+```bash
+git clone <your-repo-url>
 cd <project-folder>
 
 2. Install dependencies
