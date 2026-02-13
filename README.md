@@ -6,6 +6,27 @@ This project demonstrates a modular MVC architecture with a dedicated business l
 
 ---
 
+## Project Description
+
+This system manages the lifecycle of venues and events in a structured and scalable way. It is designed to demonstrate backend engineering principles such as modular architecture, validation strategy, financial computation, and reporting aggregation.
+
+The application allows administrators to:
+
+- Register and manage venues
+- Schedule events with datetime validation
+- Automatically calculate rental costs based on duration and rental type
+- Apply discounts and additional fees
+- Track payment status
+- Generate dashboard statistics and revenue insights
+
+Unlike basic CRUD applications, this system enforces business rules at the service layer, ensuring data consistency and proper domain validation before database interaction.
+
+The project follows a layered MVC approach combined with a dedicated service layer to maintain clean separation between HTTP handling, business logic, and persistence logic.
+
+This repository is structured to reflect how production-ready backend systems are typically organized.
+
+---
+
 ## 🚀 Overview
 
 This application is designed to manage:
@@ -126,11 +147,11 @@ MySQL Database
 
 ### Relationship
 
-- 1 Venue → Many Events
-- Event memiliki foreign key ke Venue
+One Venue can have many Events.
 
+Venue (1) → (N) Event
 
-Event references Venue using foreign key constraint with `onDelete: Restrict`.
+Foreign key constraint uses restricted deletion to preserve event integrity.
 
 ---
 
@@ -224,15 +245,29 @@ Each module contains:
 - Redirect-based feedback messaging
 
 ---
+## 📦 Dependencies
 
-## Future Improvements
+### Core Dependencies
 
-- REST API layer
-- Role-based access control
-- Transaction handling
-- Unit & integration testing
-- CI/CD pipeline
-- Docker containerization
-- Caching layer
+- NestJS – Backend application framework
+- Prisma ORM – Type-safe database client
+- MySQL – Relational database
+- EJS – Server-side rendering template engine
+- class-validator – Input validation
+- class-transformer – DTO transformation
+
+### Development Dependencies
+
+- TypeScript – Static typing
+- ts-node – TypeScript execution
+- ESLint – Code linting
+- Prettier – Code formatting
+- Prisma CLI – Database migration & schema management
 
 ---
+
+### Environment Requirements
+
+- Node.js (v18+ recommended)
+- MySQL Server
+- npm or yarn
