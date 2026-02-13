@@ -1,98 +1,259 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# 🎟 Event & Venue Management System
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Production-style Event & Venue Management System built with **NestJS (SSR)**, **Prisma ORM**, and **MySQL**.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+This project demonstrates a modular MVC architecture with a dedicated business logic layer, financial calculation system, validation strategy, and analytical reporting.
 
-## Description
+---
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## 🚀 Overview
 
-## Project setup
+This application is designed to manage:
 
-```bash
-$ npm install
-```
+- Venue lifecycle
+- Event scheduling
+- Rental pricing calculation
+- Payment tracking
+- Financial statistics dashboard
 
-## Compile and run the project
+The system uses **Server-Side Rendering (EJS)** and follows a **layered MVC architecture** to ensure maintainability, scalability, and clean separation of concerns.
 
-```bash
-# development
-$ npm run start
+---
 
-# watch mode
-$ npm run start:dev
+## 🏗 Architecture
 
-# production mode
-$ npm run start:prod
-```
+The application follows a structured layered architecture:
 
-## Run tests
+Client (Browser)
+↓
+Controller (HTTP Layer)
+↓
+Service (Business Logic Layer)
+↓
+Prisma ORM (Data Access Layer)
+↓
+MySQL Database
 
-```bash
-# unit tests
-$ npm run test
 
-# e2e tests
-$ npm run test:e2e
+### MVC Mapping
 
-# test coverage
-$ npm run test:cov
-```
+| Layer       |   Implementation              |
+|-------------|-------------------------------|
+| Model       | Prisma Schema & Prisma Client |
+| View        | EJS Templates                 |
+| Controller  | NestJS Controllers            |
+| Service     | Business Logic Layer          |
 
-## Deployment
+### Architectural Principles
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+- Thin Controllers
+- Centralized Business Logic
+- Type-Safe Database Access
+- Modular Domain-Based Structure
+- Clear Separation of Concerns
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+---
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+## 🧠 Core Features
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### 🎪 Venue Management
+- Create, update, delete venues
+- Capacity & pricing configuration
+- Venue status management (ACTIVE, MAINTENANCE, INACTIVE)
 
-## Resources
+### 📅 Event Management
+- Event scheduling with datetime validation
+- Automatic pricing calculation
+- Rental type (Hourly / Daily)
+- Payment tracking
+- Event status tracking (UPCOMING, ONGOING, COMPLETED, CANCELLED)
 
-Check out a few resources that may come in handy when working with NestJS:
+### 💰 Pricing Logic
+- Duration-based calculation
+- Discount support
+- Additional fees support
+- Final price auto-calculated
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+### 📊 Dashboard & Analytics
+- Total events
+- Upcoming / Ongoing / Completed
+- Paid vs Unpaid tracking
+- Revenue aggregation
+- Revenue per venue
 
-## Support
+---
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## 🗄 Database Design
 
-## Stay in touch
+### Entities
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+#### 1. Admin
+- id (UUID)
+- name
+- email (unique)
+- password_hash
+- is_active
+- created_at
+- updated_at
 
-## License
+#### 2. Venue
+- id (UUID)
+- name
+- description
+- address
+- city
+- capacity
+- price_per_hour
+- price_per_day
+- currency
+- status (ACTIVE / MAINTENANCE / INACTIVE)
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+#### 3. Event
+- id (UUID)
+- venue_id (FK)
+- name
+- description
+- start_datetime
+- end_datetime
+- status (UPCOMING / ONGOING / COMPLETED / CANCELLED)
+- rental_type (HOURLY / DAILY)
+- base_price
+- discount
+- additional_fees
+- final_price
+- is_paid
+- payment_date
+
+### Relationship
+
+- 1 Venue → Many Events
+- Event memiliki foreign key ke Venue
+
+
+Event references Venue using foreign key constraint with `onDelete: Restrict`.
+
+---
+
+## 📷 Application Screenshots
+
+Create a `/screenshots` folder and add images:
+
+screenshots/
+├── dashboard.png
+├── venue-list.png
+├── event-list.png
+├── event-form.png
+└── event-detail.png
+
+
+Then embed:
+
+```markdown
+![Dashboard](screenshots/dashboard.png)
+![Venue List](screenshots/venue-list.png)
+![Event List](screenshots/event-list.png)
+⚙ Tech Stack
+Backend
+NestJS
+
+Prisma ORM
+
+MySQL
+
+EJS (Server-Side Rendering)
+
+Validation & Utilities
+class-validator
+
+class-transformer
+
+Development Tools
+TypeScript
+
+ESLint
+
+Prettier
+
+🔧 Installation
+1️⃣ Clone Repository
+git clone <your-repo-url>
+cd <project-folder>
+2️⃣ Install Dependencies
+npm install
+3️⃣ Setup Environment Variables
+Create .env file:
+
+DATABASE_URL="mysql://user:password@localhost:3306/database"
+4️⃣ Generate Prisma Client
+npx prisma generate
+5️⃣ Run Migration
+npx prisma migrate dev
+6️⃣ Start Development Server
+npm run start:dev
+Application runs on:
+
+http://localhost:3000
+📁 Project Structure
+src/
+ ├── admin/
+ ├── venue/
+ ├── event/
+ ├── prisma/
+ ├── views/
+Each module contains:
+
+Controller
+
+Service
+
+DTO
+
+View template
+
+🧩 Business Rules
+End datetime must be greater than start datetime
+
+UUID validation before database query
+
+Venue must exist before event creation
+
+Pricing calculation centralized in service layer
+
+Partial update does not overwrite unchanged fields
+
+Revenue calculated via aggregate query
+
+📈 Reporting Strategy
+Uses Prisma:
+
+aggregate
+
+groupBy
+
+Indexed queries for performance
+
+Supports financial insight per venue and global revenue tracking.
+
+🔐 Error Handling Strategy
+DTO-based validation
+
+Controlled try-catch blocks
+
+Structured logging via NestJS Logger
+
+User feedback via redirect query parameters
+
+🛠 Future Improvements
+REST API layer
+
+Role-based access control
+
+Transaction support
+
+Unit & integration testing
+
+CI/CD pipeline
+
+Caching layer
+
+Docker containerization
