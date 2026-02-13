@@ -41,6 +41,48 @@ The system uses **Server-Side Rendering (EJS)** and follows a **layered MVC arch
 
 ---
 
+## 📷 Application Screenshots
+
+### 🏠 Dashboard
+
+Displays total events, revenue summary, and event status breakdown.
+
+![Dashboard](screenshots/dashboard.png)
+
+---
+
+### 🏢 Venue List
+
+Shows all registered venues including status and pricing configuration.
+
+![Venue List](screenshots/venue-list.png)
+
+---
+
+### 📅 Event List
+
+Displays scheduled events with filtering by status and payment information.
+
+![Event List](screenshots/event-list.png)
+
+---
+
+### ➕ Create Event Form
+
+Form interface for scheduling events with datetime validation and pricing calculation.
+
+![Create Event](screenshots/event-form.png)
+
+---
+
+### 📄 Event Detail
+
+Detailed view showing financial breakdown, rental type, discount, and payment status.
+
+![Event Detail](screenshots/event-detail.png)
+
+---
+
 ## 🏗 Architecture
 
 The application follows a structured layered architecture:
