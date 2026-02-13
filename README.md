@@ -134,126 +134,105 @@ Event references Venue using foreign key constraint with `onDelete: Restrict`.
 
 ---
 
-## 📷 Application Screenshots
+## Business Rules
 
-Create a `/screenshots` folder and add images:
+- End datetime must be greater than start datetime.
+- Venue must exist before event creation.
+- UUID validation performed before database query.
+- Pricing logic centralized in service layer.
+- Partial update does not overwrite unchanged fields.
+- Revenue calculated using aggregate queries.
 
-screenshots/
-├── dashboard.png
-├── venue-list.png
-├── event-list.png
-├── event-form.png
-└── event-detail.png
+---
 
+## Tech Stack
 
-Then embed:
-
-```markdown
-![Dashboard](screenshots/dashboard.png)
-![Venue List](screenshots/venue-list.png)
-![Event List](screenshots/event-list.png)
-⚙ Tech Stack
 Backend
-NestJS
-
-Prisma ORM
-
-MySQL
-
-EJS (Server-Side Rendering)
+- NestJS
+- Prisma ORM
+- MySQL
+- EJS (Server-Side Rendering)
 
 Validation & Utilities
-class-validator
-
-class-transformer
+- class-validator
+- class-transformer
 
 Development Tools
-TypeScript
+- TypeScript
+- ESLint
+- Prettier
 
-ESLint
+---
 
-Prettier
+## Installation
 
-🔧 Installation
-1️⃣ Clone Repository
-git clone <your-repo-url>
+1. Clone repository
+
+git clone <your-repo-url>  
 cd <project-folder>
-2️⃣ Install Dependencies
+
+2. Install dependencies
+
 npm install
-3️⃣ Setup Environment Variables
-Create .env file:
+
+3. Setup environment variables
+
+Create a `.env` file:
 
 DATABASE_URL="mysql://user:password@localhost:3306/database"
-4️⃣ Generate Prisma Client
+
+4. Generate Prisma Client
+
 npx prisma generate
-5️⃣ Run Migration
+
+5. Run database migration
+
 npx prisma migrate dev
-6️⃣ Start Development Server
+
+6. Start development server
+
 npm run start:dev
+
 Application runs on:
 
 http://localhost:3000
-📁 Project Structure
+
+---
+
+## Project Structure
+
 src/
  ├── admin/
  ├── venue/
  ├── event/
  ├── prisma/
  ├── views/
+
 Each module contains:
+- Controller
+- Service
+- DTO
+- View templates
 
-Controller
+---
 
-Service
+## Error Handling Strategy
 
-DTO
+- DTO-based validation
+- Structured logging via NestJS Logger
+- Controlled try-catch blocks
+- Redirect-based feedback messaging
 
-View template
+---
 
-🧩 Business Rules
-End datetime must be greater than start datetime
+## Future Improvements
 
-UUID validation before database query
+- REST API layer
+- Role-based access control
+- Transaction handling
+- Unit & integration testing
+- CI/CD pipeline
+- Docker containerization
+- Caching layer
 
-Venue must exist before event creation
-
-Pricing calculation centralized in service layer
-
-Partial update does not overwrite unchanged fields
-
-Revenue calculated via aggregate query
-
-📈 Reporting Strategy
-Uses Prisma:
-
-aggregate
-
-groupBy
-
-Indexed queries for performance
-
-Supports financial insight per venue and global revenue tracking.
-
-🔐 Error Handling Strategy
-DTO-based validation
-
-Controlled try-catch blocks
-
-Structured logging via NestJS Logger
-
-User feedback via redirect query parameters
-
-🛠 Future Improvements
-REST API layer
-
-Role-based access control
-
-Transaction support
-
-Unit & integration testing
-
-CI/CD pipeline
-
-Caching layer
-
-Docker containerization
+---
