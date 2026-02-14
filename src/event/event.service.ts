@@ -52,9 +52,9 @@ export class EventService {
       throw new NotFoundException('Venue not found');
     }
 
-    if (Number(attendeeCount) <= venue.capacity) {
+    if (Number(attendeeCount) > venue.capacity) {
       throw new BadRequestException(
-        `Attendee count (${attendeeCount}) must be greater than venue capacity (${venue.capacity}).`,
+        `Attendee count (${attendeeCount}) cannot exceed venue capacity (${venue.capacity}).`,
       );
     }
   }
@@ -117,7 +117,7 @@ export class EventService {
     return isNaN(num) ? 0 : num;
   }
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async createEvent(createEventDto: CreateEventDto): Promise<Event> {
     this.logger.log(`Creating new event: ${createEventDto.name}`);
@@ -526,14 +526,14 @@ export class EventService {
     if (shouldRecalculatePrice) {
       const venue =
         updateEventDto.venueId &&
-        updateEventDto.venueId !== existingEvent.venueId
+          updateEventDto.venueId !== existingEvent.venueId
           ? await this.prisma.venue.findUnique({
-              where: { id: venueId },
-              select: {
-                pricePerHour: true,
-                pricePerDay: true,
-              },
-            })
+            where: { id: venueId },
+            select: {
+              pricePerHour: true,
+              pricePerDay: true,
+            },
+          })
           : existingEvent.venue;
 
       if (!venue) {

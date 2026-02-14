@@ -16,14 +16,14 @@ import { VenueService } from './venue.service';
 import { CreateVenueDto } from './dto/create-venue.dto';
 import { UpdateVenueDto } from './dto/update-venue.dto';
 import { QueryVenueDto } from './dto/query-venue.dto';
-import { AuthGuard } from '../auth/guards/auth.guard';
+import { ApiAuthGuard } from '../auth/guards/api-auth.guard';
 
 @Controller('api/venues')
-@UseGuards(AuthGuard)
+@UseGuards(ApiAuthGuard)
 export class VenueApiController {
   private readonly logger = new Logger(VenueApiController.name);
 
-  constructor(private readonly venueService: VenueService) {}
+  constructor(private readonly venueService: VenueService) { }
 
   /**
    * POST /api/venues

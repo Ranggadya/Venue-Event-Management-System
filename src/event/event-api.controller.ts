@@ -17,14 +17,14 @@ import { EventService } from './event.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { QueryEventDto } from './dto/query-event.dto';
-import { AuthGuard } from '../auth/guards/auth.guard';
+import { ApiAuthGuard } from '../auth/guards/api-auth.guard';
 
 @Controller('api/events')
-@UseGuards(AuthGuard)
+@UseGuards(ApiAuthGuard)
 export class EventApiController {
   private readonly logger = new Logger(EventApiController.name);
 
-  constructor(private readonly eventService: EventService) {}
+  constructor(private readonly eventService: EventService) { }
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
