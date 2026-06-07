@@ -16,19 +16,21 @@ import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import type { Request, Response } from 'express';
+import type { AdminSession } from '../common/types/admin-session.type';
+import {
+  ADMIN_SESSION_MAX_AGE_MS,
+  REMEMBER_ME_SESSION_MAX_AGE_MS,
+} from './session.config';
 
 @Controller('auth')
 export class AuthController {
   private readonly logger = new Logger(AuthController.name);
 
-  constructor(private readonly authService: AuthService) { }
+  constructor(private readonly authService: AuthService) {}
 
   // GET /auth/login
   @Get('login')
-  async getLoginPage(
-    @Session() session: Record<string, any>,
-    @Res() res: Response,
-  ) {
+  async getLoginPage(@Session() session: AdminSession, @Res() res: Response) {
     if (session?.adminId) {
       this.logger.log(
         `Admin ${session.adminId} already authenticated, redirecting to dashboard`,
@@ -51,7 +53,7 @@ export class AuthController {
   @Throttle({ short: { limit: 5, ttl: 60000 } })
   async loginAdmin(
     @Body() loginDto: LoginDto,
-    @Session() session: Record<string, any>,
+    @Session() session: AdminSession,
     @Res() res: Response,
     @Req() req: Request,
   ) {
@@ -62,10 +64,9 @@ export class AuthController {
       // Store admin ID in session
       session.adminId = admin.id;
 
-      // Handle "Remember Me"
-      if (loginDto.remember) {
-        req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000;
-      }
+      req.session.cookie.maxAge = loginDto.remember
+        ? REMEMBER_ME_SESSION_MAX_AGE_MS
+        : ADMIN_SESSION_MAX_AGE_MS;
 
       this.logger.log(
         `Admin login successful: ${admin.email} (ID: ${admin.id}) from IP: ${req.ip}`,
@@ -130,7 +131,7 @@ export class AuthController {
   // GET /auth/me
   @Get('me')
   @HttpCode(HttpStatus.OK)
-  async getCurrentAdmin(@Session() session: Record<string, any>) {
+  async getCurrentAdmin(@Session() session: AdminSession) {
     // Check if authenticated
     if (!session?.adminId) {
       throw new BadRequestException('Not authenticated');

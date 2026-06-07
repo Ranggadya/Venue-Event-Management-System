@@ -15,7 +15,6 @@ import type { Request, Response } from 'express';
 @Injectable()
 export class AuthGuard implements CanActivate {
   private readonly logger = new Logger(AuthGuard.name);
-  private readonly SESSION_MAX_AGE = 24 * 60 * 60 * 1000;
 
   canActivate(
     context: ExecutionContext,
@@ -34,35 +33,6 @@ export class AuthGuard implements CanActivate {
 
       response.redirect('/auth/login');
       return false;
-    }
-
-    // Check session expiry
-    const sessionCreatedAt = session.cookie?.expires
-      ? new Date(session.cookie.expires).getTime() -
-        (session.cookie.maxAge || this.SESSION_MAX_AGE)
-      : Date.now();
-
-    const sessionAge = Date.now() - sessionCreatedAt;
-
-    if (sessionAge > this.SESSION_MAX_AGE) {
-      this.logger.warn(
-        `Expired session detected for admin: ${session.adminId} (age: ${Math.round(sessionAge / 1000 / 60)} minutes)`,
-      );
-
-      return new Promise<boolean>((resolve) => {
-        request.session.destroy((err) => {
-          if (err) {
-            this.logger.error('Failed to destroy expired session:', err);
-          }
-
-          // Clear cookie
-          response.clearCookie('sessionId');
-
-          // Redirect to login
-          response.redirect('/auth/login');
-          resolve(false);
-        });
-      });
     }
 
     this.logger.debug(

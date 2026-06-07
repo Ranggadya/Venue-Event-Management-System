@@ -347,8 +347,7 @@
                     Cancel
                 </a>
 
-                <button type="submit" class="btn btn-primary"
-                    :disabled="dateError || (capacityWarning && capacityWarning.includes('exceeds'))">
+                <button type="submit" class="btn btn-primary" :disabled="dateError || capacityError">
                     <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                     </svg>
@@ -367,6 +366,7 @@
                     venueCapacity: Number('<%= event && event.venue ? event.venue.capacity : 0 %>'),
                     attendeeCount: '<%= event && event.attendeeCount ? event.attendeeCount : "" %>',
                     capacityWarning: '',
+                    capacityError: false,
                     startDate: '<%= event && event.startDatetime ? new Date(event.startDatetime).toISOString().split("T")[0] : "" %>',
                     startTime: '<%= event && event.startDatetime ? new Date(event.startDatetime).toTimeString().substring(0, 5) : "" %>',
                     endDate: '<%= event && event.endDatetime ? new Date(event.endDatetime).toISOString().split("T")[0] : "" %>',
@@ -400,17 +400,24 @@
 
                     validateCapacity() {
                         this.capacityWarning = '';
+                        this.capacityError = false;
 
                         if (!this.venueId || !this.attendeeCount || this.attendeeCount <= 0) {
                             return;
                         }
 
                         const attendees = parseInt(this.attendeeCount);
+                        const capacity = parseInt(this.venueCapacity);
 
-                        if (attendees > this.venueCapacity) {
-                            this.capacityWarning = `⚠️ Exceeds venue capacity (${this.venueCapacity} max). Please reduce attendees or choose larger venue.`;
-                        } else if (attendees > this.venueCapacity * 0.9) {
-                            this.capacityWarning = `⚠️ Near capacity limit (${this.venueCapacity} max). Consider buffer space.`;
+                        if (!Number.isFinite(attendees) || !Number.isFinite(capacity) || capacity <= 0) {
+                            return;
+                        }
+
+                        if (attendees > capacity) {
+                            this.capacityError = true;
+                            this.capacityWarning = `⚠️ Exceeds venue capacity (${capacity} max). Please reduce attendees or choose larger venue.`;
+                        } else if (attendees > capacity * 0.9) {
+                            this.capacityWarning = `⚠️ Near capacity limit (${capacity} max). Consider buffer space.`;
                         }
                     },
 

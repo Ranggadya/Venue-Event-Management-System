@@ -33,12 +33,14 @@ export class HttpExceptionFilter implements ExceptionFilter {
     // Skip logging for common browser noise
     const silentPaths = ['/favicon.ico', '/robots.txt'];
     const isNoise =
-      silentPaths.includes(request.url) || request.url.startsWith('/.well-known');
+      silentPaths.includes(request.url) ||
+      request.url.startsWith('/.well-known');
 
     // Log error if not noise
     if (!isNoise) {
       this.logger.error(
-        `[${request.method}] ${request.url} - Status: ${status} - Message: ${Array.isArray(message) ? message.join(', ') : message
+        `[${request.method}] ${request.url} - Status: ${status} - Message: ${
+          Array.isArray(message) ? message.join(', ') : message
         }`,
       );
     }

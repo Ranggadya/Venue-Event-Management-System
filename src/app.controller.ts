@@ -13,6 +13,7 @@ import type { Response } from 'express';
 import { AuthGuard } from './auth/guards/auth.guard';
 import { VenueService } from './venue/venue.service';
 import { EventService } from './event/event.service';
+import { getErrorMessage, getErrorStack } from './common/utils/error.utils';
 
 @Controller()
 export class AppController {
@@ -21,7 +22,7 @@ export class AppController {
   constructor(
     private readonly venueService: VenueService,
     private readonly eventService: EventService,
-  ) { }
+  ) {}
 
   @Get()
   async root(@Session() session: Record<string, any>, @Res() res: Response) {
@@ -75,8 +76,8 @@ export class AppController {
       };
     } catch (error) {
       this.logger.error(
-        `Failed to load dashboard statistics: ${error.message}`,
-        error.stack,
+        `Failed to load dashboard statistics: ${getErrorMessage(error)}`,
+        getErrorStack(error),
       );
 
       return {

@@ -10,6 +10,7 @@ import { CreateVenueDto } from './dto/create-venue.dto';
 import { UpdateVenueDto } from './dto/update-venue.dto';
 import { QueryVenueDto } from './dto/query-venue.dto';
 import { Prisma, Venue, VenueStatus } from '@prisma/client';
+import { getErrorMessage, getErrorStack } from '../common/utils/error.utils';
 
 @Injectable()
 export class VenueService {
@@ -91,12 +92,15 @@ export class VenueService {
       }
 
       this.logger.error(
-        `Failed to create venue: ${error.message}`,
-        error.stack,
+        `Failed to create venue: ${getErrorMessage(error)}`,
+        getErrorStack(error),
       );
 
       // Handle Prisma-specific errors
-      if (error.code === 'P2002') {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
         throw new ConflictException(
           'A venue with this information already exists',
         );
@@ -193,8 +197,8 @@ export class VenueService {
       };
     } catch (error) {
       this.logger.error(
-        `Failed to fetch venues: ${error.message}`,
-        error.stack,
+        `Failed to fetch venues: ${getErrorMessage(error)}`,
+        getErrorStack(error),
       );
       throw new BadRequestException(
         'Failed to fetch venues. Please try again.',
@@ -256,7 +260,10 @@ export class VenueService {
         throw error;
       }
 
-      this.logger.error(`Failed to fetch venue: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to fetch venue: ${getErrorMessage(error)}`,
+        getErrorStack(error),
+      );
       throw new BadRequestException('Failed to fetch venue details.');
     }
   }
@@ -343,11 +350,14 @@ export class VenueService {
       }
 
       this.logger.error(
-        `Failed to update venue: ${error.message}`,
-        error.stack,
+        `Failed to update venue: ${getErrorMessage(error)}`,
+        getErrorStack(error),
       );
 
-      if (error.code === 'P2002') {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
         throw new ConflictException(
           'A venue with this information already exists',
         );
@@ -472,8 +482,8 @@ export class VenueService {
       return statistics;
     } catch (error) {
       this.logger.error(
-        `Failed to fetch statistics: ${error.message}`,
-        error.stack,
+        `Failed to fetch statistics: ${getErrorMessage(error)}`,
+        getErrorStack(error),
       );
       throw new BadRequestException(
         'Failed to fetch venue statistics. Please try again.',
@@ -503,8 +513,8 @@ export class VenueService {
       return venues;
     } catch (error) {
       this.logger.error(
-        `Failed to fetch venues by city: ${error.message}`,
-        error.stack,
+        `Failed to fetch venues by city: ${getErrorMessage(error)}`,
+        getErrorStack(error),
       );
       throw new BadRequestException('Failed to fetch venues by city.');
     }

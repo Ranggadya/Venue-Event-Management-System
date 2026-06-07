@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { EventService } from './event/event.service';
+import { VenueService } from './venue/venue.service';
 
 describe('AppController', () => {
   let appController: AppController;
@@ -8,9 +9,22 @@ describe('AppController', () => {
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
       controllers: [AppController],
-      providers: [AppService],
+      providers: [
+        {
+          provide: VenueService,
+          useValue: {},
+        },
+        {
+          provide: EventService,
+          useValue: {},
+        },
+      ],
     }).compile();
 
     appController = app.get<AppController>(AppController);
+  });
+
+  it('should be defined', () => {
+    expect(appController).toBeDefined();
   });
 });

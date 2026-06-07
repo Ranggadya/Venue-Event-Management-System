@@ -2,19 +2,22 @@ import { IsOptional, IsString, IsEnum, IsInt, Min, Max } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import { VenueStatus } from '@prisma/client';
 
+const emptyStringToUndefined = ({ value }: { value: unknown }): unknown =>
+  value === '' ? undefined : value;
+
 export class QueryVenueDto {
   @IsOptional()
-  @Transform(({ value }) => (value === '' ? undefined : value))
+  @Transform(emptyStringToUndefined)
   @IsString()
   search?: string;
 
   @IsOptional()
-  @Transform(({ value }) => (value === '' ? undefined : value))
+  @Transform(emptyStringToUndefined)
   @IsString()
   city?: string;
 
   @IsOptional()
-  @Transform(({ value }) => (value === '' ? undefined : value))
+  @Transform(emptyStringToUndefined)
   @IsEnum(VenueStatus, {
     message: 'Status must be one of: AVAILABLE, BOOKED, MAINTENANCE, INACTIVE',
   })
@@ -35,10 +38,13 @@ export class QueryVenueDto {
 
   @IsOptional()
   @IsString()
-  @IsEnum(['name', 'city', 'capacity', 'pricePerDay', 'createdAt', 'updatedAt'], {
-    message:
-      'Sort field must be one of: name, city, capacity, pricePerDay, createdAt, updatedAt',
-  })
+  @IsEnum(
+    ['name', 'city', 'capacity', 'pricePerDay', 'createdAt', 'updatedAt'],
+    {
+      message:
+        'Sort field must be one of: name, city, capacity, pricePerDay, createdAt, updatedAt',
+    },
+  )
   sortBy?: string = 'createdAt';
 
   @IsOptional()

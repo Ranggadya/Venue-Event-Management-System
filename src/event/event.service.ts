@@ -13,6 +13,7 @@ import { QueryEventDto } from './dto/query-event.dto';
 import { Prisma, Event } from '@prisma/client';
 import { EventStatus } from '@prisma/client';
 import { PricingHelper } from './pricing.helper';
+import { getErrorMessage, getErrorStack } from '../common/utils/error.utils';
 
 @Injectable()
 export class EventService {
@@ -69,9 +70,9 @@ export class EventService {
       throw new NotFoundException('Venue not found');
     }
 
-    if (venue.status === 'INACTIVE') {
+    if (venue.status !== 'ACTIVE') {
       throw new BadRequestException(
-        `Cannot book venue "${venue.name}" because it is currently inactive. Please choose another venue or contact administrator.`,
+        `Cannot book venue "${venue.name}" because it is currently ${venue.status.toLowerCase()}. Please choose another active venue or contact administrator.`,
       );
     }
   }
@@ -117,7 +118,7 @@ export class EventService {
     return isNaN(num) ? 0 : num;
   }
 
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async createEvent(createEventDto: CreateEventDto): Promise<Event> {
     this.logger.log(`Creating new event: ${createEventDto.name}`);
@@ -229,9 +230,19 @@ export class EventService {
       return event;
     } catch (error) {
       this.logger.error(
-        `Failed to create event: ${error.message}`,
-        error.stack,
+        `Failed to create event: ${getErrorMessage(error)}`,
+        getErrorStack(error),
       );
+
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2020'
+      ) {
+        throw new BadRequestException(
+          'Calculated event price is too large for the database. Please apply the latest migration and try again.',
+        );
+      }
+
       throw new BadRequestException(
         'Failed to create event. Please check your input.',
       );
@@ -336,8 +347,8 @@ export class EventService {
       };
     } catch (error) {
       this.logger.error(
-        `Failed to fetch events: ${error.message}`,
-        error.message,
+        `Failed to fetch events: ${getErrorMessage(error)}`,
+        getErrorStack(error),
       );
       throw new BadRequestException(`Failed fetch data event`);
     }
@@ -382,7 +393,10 @@ export class EventService {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      this.logger.error(`Failed to fetch event: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to fetch event: ${getErrorMessage(error)}`,
+        getErrorStack(error),
+      );
       throw new BadRequestException('Failed to fetch event');
     }
   }
@@ -526,14 +540,14 @@ export class EventService {
     if (shouldRecalculatePrice) {
       const venue =
         updateEventDto.venueId &&
-          updateEventDto.venueId !== existingEvent.venueId
+        updateEventDto.venueId !== existingEvent.venueId
           ? await this.prisma.venue.findUnique({
-            where: { id: venueId },
-            select: {
-              pricePerHour: true,
-              pricePerDay: true,
-            },
-          })
+              where: { id: venueId },
+              select: {
+                pricePerHour: true,
+                pricePerDay: true,
+              },
+            })
           : existingEvent.venue;
 
       if (!venue) {
@@ -609,23 +623,34 @@ export class EventService {
       return updatedEvent;
     } catch (error) {
       this.logger.error(
-        `Failed to update event: ${error.message}`,
-        error.stack,
+        `Failed to update event: ${getErrorMessage(error)}`,
+        getErrorStack(error),
       );
 
-      if (error.code === 'P2025') {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
         throw new NotFoundException('Event not found');
       }
 
-      if (error.code === 'P2002') {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
         throw new ConflictException('Event with this data already exists');
       }
 
-      if (error.code === 'P2003') {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2003'
+      ) {
         throw new BadRequestException('Invalid venue reference');
       }
 
-      throw new BadRequestException(`Failed to update event: ${error.message}`);
+      throw new BadRequestException(
+        `Failed to update event: ${getErrorMessage(error)}`,
+      );
     }
   }
 
@@ -666,8 +691,8 @@ export class EventService {
       };
     } catch (error) {
       this.logger.error(
-        `Failed to delete event: ${error.message}`,
-        error.stack,
+        `Failed to delete event: ${getErrorMessage(error)}`,
+        getErrorStack(error),
       );
       throw new BadRequestException('Failed to delete event');
     }
@@ -742,8 +767,8 @@ export class EventService {
       return statistics;
     } catch (error) {
       this.logger.error(
-        `Failed to fetch statistics: ${error.message}`,
-        error.stack,
+        `Failed to fetch statistics: ${getErrorMessage(error)}`,
+        getErrorStack(error),
       );
       throw new BadRequestException('Failed to fetch statistics');
     }
@@ -796,8 +821,8 @@ export class EventService {
       };
     } catch (error) {
       this.logger.error(
-        `Failed to fetch events for venue: ${error.message}`,
-        error.stack,
+        `Failed to fetch events for venue: ${getErrorMessage(error)}`,
+        getErrorStack(error),
       );
       throw new BadRequestException('Failed to fetch events for venue');
     }
@@ -901,8 +926,8 @@ export class EventService {
       return statistics;
     } catch (error) {
       this.logger.error(
-        `Failed to fetch financial statistics: ${error.message}`,
-        error.stack,
+        `Failed to fetch financial statistics: ${getErrorMessage(error)}`,
+        getErrorStack(error),
       );
       throw new BadRequestException('Failed to fetch financial statistics');
     }

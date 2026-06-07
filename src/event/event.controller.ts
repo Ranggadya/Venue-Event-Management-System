@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 import {
   Controller,
   Get,
@@ -22,6 +21,7 @@ import { UpdateEventDto } from './dto/update-event.dto';
 import { QueryEventDto } from './dto/query-event.dto';
 import { AuthGuard } from '../auth/guards/auth.guard';
 import { VenueService } from '../venue/venue.service';
+import { getErrorMessage, getErrorStack } from '../common/utils/error.utils';
 
 @Controller('events')
 @UseGuards(AuthGuard)
@@ -57,7 +57,10 @@ export class EventController {
         success: null,
       };
     } catch (error) {
-      this.logger.error(`Failed to load events: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to load events: ${getErrorMessage(error)}`,
+        getErrorStack(error),
+      );
 
       return {
         title: 'Manage Events',
@@ -65,56 +68,6 @@ export class EventController {
         meta: { total: 0, page: 1, limit: 10, totalPages: 0 },
         query: queryDto,
         error: 'Failed to load events. Please try again.',
-        success: null,
-      };
-    }
-  }
-
-  /**
-   * GET /events/create
-   * Display create event form with venue dropdown
-   * Renders: views/events/form.ejs
-   */
-  @Get('create')
-  @Render('events/form')
-  async createEventForm(@Query('venueId') venueId?: string) {
-    this.logger.log(
-      `[GET /events/create] Rendering create event form${venueId ? ` for venue: ${venueId}` : ''}`,
-    );
-
-    try {
-      // Get all available venues for dropdown
-      const venuesResult = await this.venueService.getAllVenues({
-        page: 1,
-        limit: 100,
-        sortBy: 'name',
-        sortOrder: 'asc',
-      });
-
-      return {
-        title: 'Create New Event',
-        event: null, // null indicates create mode
-        venues: venuesResult.data,
-        selectedVenueId: venueId || null, // Pre-select venue if provided
-        action: '/events',
-        method: 'POST',
-        error: null,
-        success: null,
-      };
-    } catch (error) {
-      this.logger.error(
-        `Failed to load venues for form: ${error.message}`,
-        error.stack,
-      );
-
-      return {
-        title: 'Create New Event',
-        event: null,
-        venues: [],
-        selectedVenueId: venueId || null,
-        action: '/events',
-        method: 'POST',
-        error: 'Failed to load venues. Please try again.',
         success: null,
       };
     }
@@ -149,8 +102,8 @@ export class EventController {
       };
     } catch (error) {
       this.logger.error(
-        `Failed to load create form: ${error.message}`,
-        error.stack,
+        `Failed to load create form: ${getErrorMessage(error)}`,
+        getErrorStack(error),
       );
 
       return {
@@ -197,7 +150,7 @@ export class EventController {
     } catch (error) {
       return {
         available: false,
-        message: error.message,
+        message: getErrorMessage(error),
       };
     }
   }
@@ -227,8 +180,8 @@ export class EventController {
       return res.redirect(`/events/${event.id}?success=created`);
     } catch (error) {
       this.logger.error(
-        `Failed to create event: ${error.message}`,
-        error.stack,
+        `Failed to create event: ${getErrorMessage(error)}`,
+        getErrorStack(error),
       );
 
       try {
@@ -246,7 +199,9 @@ export class EventController {
           selectedVenueId: createEventDto.venueId,
           action: '/events',
           method: 'POST',
-          error: error.message || 'Failed to create event. Please try again.',
+          error:
+            getErrorMessage(error) ||
+            'Failed to create event. Please try again.',
           success: null,
         });
       } catch (venueError) {
@@ -257,7 +212,9 @@ export class EventController {
           selectedVenueId: createEventDto.venueId,
           action: '/events',
           method: 'POST',
-          error: error.message || 'Failed to create event. Please try again.',
+          error:
+            getErrorMessage(error) ||
+            'Failed to create event. Please try again.',
           success: null,
         });
       }
@@ -288,8 +245,8 @@ export class EventController {
       };
     } catch (error) {
       this.logger.error(
-        `Failed to load statistics: ${error.message}`,
-        error.stack,
+        `Failed to load statistics: ${getErrorMessage(error)}`,
+        getErrorStack(error),
       );
 
       return {
@@ -325,8 +282,8 @@ export class EventController {
       };
     } catch (error) {
       this.logger.error(
-        `Failed to load financial statistics: ${error.message}`,
-        error.stack,
+        `Failed to load financial statistics: ${getErrorMessage(error)}`,
+        getErrorStack(error),
       );
 
       return {
@@ -374,14 +331,14 @@ export class EventController {
       };
     } catch (error) {
       this.logger.error(
-        `Failed to load event ${id}: ${error.message}`,
-        error.stack,
+        `Failed to load event ${id}: ${getErrorMessage(error)}`,
+        getErrorStack(error),
       );
 
       return {
         title: 'Event Not Found',
         event: null,
-        error: error.message || 'Event not found.',
+        error: getErrorMessage(error) || 'Event not found.',
         success: null,
       };
     }
@@ -438,8 +395,8 @@ export class EventController {
       };
     } catch (error) {
       this.logger.error(
-        `Failed to load event for editing: ${error.message}`,
-        error.stack,
+        `Failed to load event for editing: ${getErrorMessage(error)}`,
+        getErrorStack(error),
       );
 
       // If event not found, try to at least load venues
@@ -458,7 +415,7 @@ export class EventController {
           selectedVenueId: null,
           action: '/events',
           method: 'POST',
-          error: error.message || 'Event not found.',
+          error: getErrorMessage(error) || 'Event not found.',
           success: null,
         };
       } catch (venueError) {
@@ -469,7 +426,7 @@ export class EventController {
           selectedVenueId: null,
           action: '/events',
           method: 'POST',
-          error: error.message || 'Event not found.',
+          error: getErrorMessage(error) || 'Event not found.',
           success: null,
         };
       }
@@ -502,8 +459,8 @@ export class EventController {
       return res.redirect(`/events/${event.id}?success=updated`);
     } catch (error) {
       this.logger.error(
-        `Failed to update event ${id}: ${error.message}`,
-        error.stack,
+        `Failed to update event ${id}: ${getErrorMessage(error)}`,
+        getErrorStack(error),
       );
 
       // Load venues again for re-rendering form
@@ -523,7 +480,9 @@ export class EventController {
           selectedVenueId: updateEventDto.venueId,
           action: `/events/${id}`,
           method: 'POST',
-          error: error.message || 'Failed to update event. Please try again.',
+          error:
+            getErrorMessage(error) ||
+            'Failed to update event. Please try again.',
         });
       } catch (venueError) {
         return res.status(HttpStatus.BAD_REQUEST).render('events/form', {
@@ -533,7 +492,9 @@ export class EventController {
           selectedVenueId: updateEventDto.venueId,
           action: `/events/${id}`,
           method: 'POST',
-          error: error.message || 'Failed to update event. Please try again.',
+          error:
+            getErrorMessage(error) ||
+            'Failed to update event. Please try again.',
         });
       }
     }
@@ -556,13 +517,13 @@ export class EventController {
       return res.redirect('/events?success=deleted');
     } catch (error) {
       this.logger.error(
-        `Failed to delete event ${id}: ${error.message}`,
-        error.stack,
+        `Failed to delete event ${id}: ${getErrorMessage(error)}`,
+        getErrorStack(error),
       );
 
       // Redirect back to detail page with error message
       return res.redirect(
-        `/events/${id}?error=${encodeURIComponent(error.message)}`,
+        `/events/${id}?error=${encodeURIComponent(getErrorMessage(error))}`,
       );
     }
   }
@@ -597,12 +558,12 @@ export class EventController {
       );
     } catch (error) {
       this.logger.error(
-        `Failed to toggle payment status: ${error.message}`,
-        error.stack,
+        `Failed to toggle payment status: ${getErrorMessage(error)}`,
+        getErrorStack(error),
       );
 
       return res.redirect(
-        `/events/${id}?error=${encodeURIComponent(error.message)}`,
+        `/events/${id}?error=${encodeURIComponent(getErrorMessage(error))}`,
       );
     }
   }

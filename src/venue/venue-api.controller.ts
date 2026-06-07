@@ -23,7 +23,7 @@ import { ApiAuthGuard } from '../auth/guards/api-auth.guard';
 export class VenueApiController {
   private readonly logger = new Logger(VenueApiController.name);
 
-  constructor(private readonly venueService: VenueService) { }
+  constructor(private readonly venueService: VenueService) {}
 
   /**
    * POST /api/venues

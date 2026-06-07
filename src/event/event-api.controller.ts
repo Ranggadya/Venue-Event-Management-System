@@ -24,7 +24,7 @@ import { ApiAuthGuard } from '../auth/guards/api-auth.guard';
 export class EventApiController {
   private readonly logger = new Logger(EventApiController.name);
 
-  constructor(private readonly eventService: EventService) { }
+  constructor(private readonly eventService: EventService) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)

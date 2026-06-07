@@ -22,6 +22,8 @@ import { UpdateVenueDto } from './dto/update-venue.dto';
 import { QueryVenueDto } from './dto/query-venue.dto';
 import { AuthGuard } from '../auth/guards/auth.guard';
 import { AuthService } from '../auth/auth.service';
+import type { AuthenticatedAdminSession } from '../common/types/admin-session.type';
+import { getErrorMessage, getErrorStack } from '../common/utils/error.utils';
 
 @Controller('venues')
 @UseGuards(AuthGuard)
@@ -38,7 +40,7 @@ export class VenueController {
   @Render('venues/list')
   async listVenues(
     @Query() queryDto: QueryVenueDto,
-    @Session() session: Record<string, any>,
+    @Session() session: AuthenticatedAdminSession,
     @Req() req: Request,
     @Query('success') successMessage?: string,
   ) {
@@ -74,7 +76,10 @@ export class VenueController {
         error,
       };
     } catch (error) {
-      this.logger.error(`Failed to load venues: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to load venues: ${getErrorMessage(error)}`,
+        getErrorStack(error),
+      );
 
       return {
         title: 'Manage Venues',
@@ -91,7 +96,7 @@ export class VenueController {
   // GET /venues/create
   @Get('create')
   @Render('venues/form')
-  async createVenueForm(@Session() session: Record<string, any>) {
+  async createVenueForm(@Session() session: AuthenticatedAdminSession) {
     this.logger.log('[GET /venues/create] Rendering create venue form');
 
     // Get current user
@@ -112,7 +117,7 @@ export class VenueController {
   @Post()
   async createVenue(
     @Body() createVenueDto: CreateVenueDto,
-    @Session() session: Record<string, any>,
+    @Session() session: AuthenticatedAdminSession,
     @Res() res: Response,
     @Req() req: Request,
   ) {
@@ -131,8 +136,8 @@ export class VenueController {
       return res.redirect(`/venues/${venue.id}?success=created`);
     } catch (error) {
       this.logger.error(
-        `Failed to create venue: ${error.message}`,
-        error.stack,
+        `Failed to create venue: ${getErrorMessage(error)}`,
+        getErrorStack(error),
       );
 
       // Get user for re-render
@@ -144,7 +149,8 @@ export class VenueController {
         venue: createVenueDto,
         action: '/venues',
         method: 'POST',
-        error: error.message || 'Failed to create venue. Please try again.',
+        error:
+          getErrorMessage(error) || 'Failed to create venue. Please try again.',
         success: null,
       });
     }
@@ -155,7 +161,7 @@ export class VenueController {
   @Render('venues/details')
   async getVenueDetail(
     @Param('id') id: string,
-    @Session() session: Record<string, any>,
+    @Session() session: AuthenticatedAdminSession,
     @Query('success') successMessage?: string,
     @Query('error') errorMessage?: string,
   ) {
@@ -189,15 +195,15 @@ export class VenueController {
       };
     } catch (error) {
       this.logger.error(
-        `Failed to load venue ${id}: ${error.message}`,
-        error.stack,
+        `Failed to load venue ${id}: ${getErrorMessage(error)}`,
+        getErrorStack(error),
       );
 
       return {
         title: 'Venue Not Found',
         user,
         venue: null,
-        error: error.message || 'Venue not found.',
+        error: getErrorMessage(error) || 'Venue not found.',
         success: null,
       };
     }
@@ -208,7 +214,7 @@ export class VenueController {
   @Render('venues/form')
   async editVenueForm(
     @Param('id') id: string,
-    @Session() session: Record<string, any>,
+    @Session() session: AuthenticatedAdminSession,
   ) {
     this.logger.log(`[GET /venues/${id}/edit] Rendering edit venue form`);
 
@@ -229,8 +235,8 @@ export class VenueController {
       };
     } catch (error) {
       this.logger.error(
-        `Failed to load venue for editing: ${error.message}`,
-        error.stack,
+        `Failed to load venue for editing: ${getErrorMessage(error)}`,
+        getErrorStack(error),
       );
 
       return {
@@ -239,7 +245,7 @@ export class VenueController {
         venue: null,
         action: '/venues',
         method: 'POST',
-        error: error.message || 'Venue not found.',
+        error: getErrorMessage(error) || 'Venue not found.',
         success: null,
       };
     }
@@ -251,7 +257,7 @@ export class VenueController {
     @Param('id') id: string,
     @Body() updateVenueDto: UpdateVenueDto,
     @Res() res: Response,
-    @Session() session: Record<string, any>,
+    @Session() session: AuthenticatedAdminSession,
   ) {
     this.logger.log(
       `[POST /venues/${id}] Updating venue with data: ${JSON.stringify(updateVenueDto)}`,
@@ -267,8 +273,8 @@ export class VenueController {
       return res.redirect(`/venues/${venue.id}?success=updated`);
     } catch (error) {
       this.logger.error(
-        `Failed to update venue ${id}: ${error.message}`,
-        error.stack,
+        `Failed to update venue ${id}: ${getErrorMessage(error)}`,
+        getErrorStack(error),
       );
 
       const user = await this.authService.findAdminById(session.adminId);
@@ -279,7 +285,8 @@ export class VenueController {
         venue: { id, ...updateVenueDto },
         action: `/venues/${id}`,
         method: 'POST',
-        error: error.message || 'Failed to update venue. Please try again.',
+        error:
+          getErrorMessage(error) || 'Failed to update venue. Please try again.',
         success: null,
       });
     }
@@ -298,12 +305,12 @@ export class VenueController {
       return res.redirect('/venues?success=deleted');
     } catch (error) {
       this.logger.error(
-        `Failed to delete venue ${id}: ${error.message}`,
-        error.stack,
+        `Failed to delete venue ${id}: ${getErrorMessage(error)}`,
+        getErrorStack(error),
       );
 
       return res.redirect(
-        `/venues/${id}?error=${encodeURIComponent(error.message)}`,
+        `/venues/${id}?error=${encodeURIComponent(getErrorMessage(error))}`,
       );
     }
   }
@@ -311,7 +318,7 @@ export class VenueController {
   // GET /venues/statistics/overview
   @Get('statistics/overview')
   @Render('venues/statistics')
-  async getStatistics(@Session() session: Record<string, any>) {
+  async getStatistics(@Session() session: AuthenticatedAdminSession) {
     this.logger.log(
       '[GET /venues/statistics/overview] Rendering statistics page',
     );
@@ -331,8 +338,8 @@ export class VenueController {
       };
     } catch (error) {
       this.logger.error(
-        `Failed to load statistics: ${error.message}`,
-        error.stack,
+        `Failed to load statistics: ${getErrorMessage(error)}`,
+        getErrorStack(error),
       );
 
       return {

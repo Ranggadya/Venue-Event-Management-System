@@ -38,8 +38,8 @@ model Venue {
   address      String      @db.Text
   city         String      @db.VarChar(255)
   capacity     Int
-  pricePerHour Decimal?    @map("price_per_hour") @db.Decimal(10, 2)
-  pricePerDay  Decimal?    @map("price_per_day") @db.Decimal(10, 2)
+  pricePerHour Decimal?    @map("price_per_hour") @db.Decimal(15, 2)
+  pricePerDay  Decimal?    @map("price_per_day") @db.Decimal(15, 2)
   currency     String      @default("IDR") @db.Char(3)
   status          VenueStatus   @default(ACTIVE)
   createdAt    DateTime    @default(now()) @map("created_at")
@@ -68,10 +68,10 @@ model Event {
 
   attendeeCount   Int?
   rentalType      RentalType  @default(HOURLY) @map("rental_type")
-  basePrice       Decimal?    @map("base_price") @db.Decimal(10, 2) // Auto-calculated
+  basePrice       Decimal?    @map("base_price") @db.Decimal(15, 2) // Auto-calculated
   discount        Decimal?    @default(0) @db.Decimal(5, 2) // Percentage (0-100)
-  additionalFees  Decimal?    @default(0) @map("additional_fees") @db.Decimal(10, 2)
-  finalPrice      Decimal?    @map("final_price") @db.Decimal(10, 2) // Total after discount + fees
+  additionalFees  Decimal?    @default(0) @map("additional_fees") @db.Decimal(15, 2)
+  finalPrice      Decimal?    @map("final_price") @db.Decimal(15, 2) // Total after discount + fees
   isPaid          Boolean     @default(false) @map("is_paid")
   paymentDate     DateTime?   @map("payment_date")
 

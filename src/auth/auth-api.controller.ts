@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/require-await */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 import {
   Controller,
   Post,
@@ -14,6 +14,7 @@ import {
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
+import type { AdminSession } from '../common/types/admin-session.type';
 
 // Auth API Controller (JSON Responses)
 @Controller('api/auth')
@@ -32,7 +33,7 @@ export class AuthApiController {
   @Throttle({ short: { limit: 5, ttl: 60000 } })
   async loginAdmin(
     @Body() loginDto: LoginDto,
-    @Session() session: Record<string, any>,
+    @Session() session: AdminSession,
   ) {
     try {
       const admin = await this.authService.validateAdminCredentials(loginDto);
@@ -60,7 +61,7 @@ export class AuthApiController {
    */
   @Post('logout')
   @HttpCode(HttpStatus.OK)
-  async logoutAdmin(@Session() session: Record<string, any>) {
+  async logoutAdmin(@Session() session: AdminSession) {
     const adminId = session?.adminId;
 
     if (!adminId) {
@@ -86,7 +87,7 @@ export class AuthApiController {
    */
   @Get('me')
   @HttpCode(HttpStatus.OK)
-  async getCurrentAdmin(@Session() session: Record<string, any>) {
+  async getCurrentAdmin(@Session() session: AdminSession) {
     if (!session?.adminId) {
       throw new BadRequestException('Not authenticated');
     }

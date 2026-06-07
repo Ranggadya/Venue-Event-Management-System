@@ -15,6 +15,21 @@ import {
 import { Transform, Type } from 'class-transformer';
 import { EventStatus, RentalType } from '@prisma/client';
 
+const formNumberOrZero = ({ value }: { value: unknown }): number => {
+  if (value === '' || value === null || value === undefined) {
+    return 0;
+  }
+
+  if (typeof value !== 'number' && typeof value !== 'string') {
+    return 0;
+  }
+
+  const parsedValue =
+    typeof value === 'number' ? value : Number.parseFloat(value);
+
+  return Number.isNaN(parsedValue) ? 0 : parsedValue;
+};
+
 export class CreateEventDto {
   // ========================================
   // BASIC INFORMATION
@@ -98,22 +113,14 @@ export class CreateEventDto {
   @IsNumber({}, { message: 'Discount must be a number' })
   @Min(0, { message: 'Discount cannot be negative' })
   @Max(100, { message: 'Discount cannot exceed 100%' })
-  @Transform(({ value }) => {
-    if (value === '' || value === null || value === undefined) return 0;
-    const num = parseFloat(value);
-    return isNaN(num) ? 0 : num;
-  })
+  @Transform(formNumberOrZero)
   discount?: number;
 
   @IsOptional()
   @Type(() => Number)
   @IsNumber({}, { message: 'Additional fees must be a number' })
   @Min(0, { message: 'Additional fees cannot be negative' })
-  @Transform(({ value }) => {
-    if (value === '' || value === null || value === undefined) return 0;
-    const num = parseFloat(value);
-    return isNaN(num) ? 0 : num;
-  })
+  @Transform(formNumberOrZero)
   additionalFees?: number;
 
   @IsOptional()

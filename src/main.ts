@@ -4,10 +4,12 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { PrismaExceptionFilter } from './common/filters/prisma-exception.filter';
+import { ejsLayoutMiddleware } from './common/middleware/ejs-layout.middleware';
+import { ADMIN_SESSION_MAX_AGE_MS } from './auth/session.config';
 import helmet from 'helmet';
 import session from 'express-session';
-import flash from 'express-flash';
 import { join } from 'path';
+import type { NextFunction, Request, Response } from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -18,13 +20,8 @@ async function bootstrap() {
   app.setViewEngine('ejs');
   app.useStaticAssets(join(process.cwd(), 'public'));
 
-  // ✅ Layout configuration
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const ejsLayouts = require('express-ejs-layouts');
-  app.use(ejsLayouts);
+  app.use(ejsLayoutMiddleware());
   app.set('layout', 'layout/main');
-  app.set('layout extractScripts', true);
-  app.set('layout extractStyles', true);
 
   app.use(
     helmet({
@@ -42,7 +39,7 @@ async function bootstrap() {
             "'unsafe-inline'",
             "'unsafe-eval'",
             'https://cdn.jsdelivr.net',
-            'https://verify-nest-restart.com', // Fingerprint for verification
+            'https://verify-nest-restart.com',
           ],
           imgSrc: ["'self'", 'data:', 'https:'],
           fontSrc: [
@@ -56,7 +53,7 @@ async function bootstrap() {
     }),
   );
 
-  // ========== CORS ========== ❌ HAPUS/COMMENT (tidak perlu untuk SSR)
+  // CORS is disabled because this app renders server-side views.
   // app.enableCors({
   //   origin: process.env.FRONTEND_URL || 'http://localhost:3000',
   //   credentials: true,
@@ -64,7 +61,6 @@ async function bootstrap() {
   //   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   // });
 
-  // ========== VALIDATION ==========
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -77,28 +73,21 @@ async function bootstrap() {
     }),
   );
 
-  // GLOBAL FILTERS
-  app.useGlobalFilters(
-    new PrismaExceptionFilter(), // Handle Prisma errors first
-    new HttpExceptionFilter(), // Then HTTP errors
-  );
+  app.useGlobalFilters(new PrismaExceptionFilter(), new HttpExceptionFilter());
 
-  app.use(flash());
-
-  app.use((req, res, next) => {
+  app.use((req: Request, res: Response, next: NextFunction) => {
     res.locals.currentPath = req.path;
     next();
   });
 
-  // SESSION
   app.use(
     session({
       secret: process.env.SESSION_SECRET || 'my-secret-key-change-this',
-      resave: true, // Required for rolling sessions
+      resave: false,
       saveUninitialized: false,
-      rolling: true, // Reset session timeout on every request
+      rolling: true,
       cookie: {
-        maxAge: 1000 * 60 * 60, // 1 hour
+        maxAge: ADMIN_SESSION_MAX_AGE_MS,
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
@@ -108,10 +97,10 @@ async function bootstrap() {
   );
 
   await app.listen(process.env.PORT || 3001);
-  console.log(`✅ Application is running on: ${await app.getUrl()}`);
+  console.log(`Application is running on: ${await app.getUrl()}`);
 }
 
 bootstrap().catch((error) => {
-  console.error('❌ Application failed to start:', error);
+  console.error('Application failed to start:', error);
   process.exit(1);
 });
